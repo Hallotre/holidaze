@@ -2,8 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Wifi, Car, Coffee, PawPrint, Star } from "lucide-react";
+import { Wifi, Car, Coffee, PawPrint, Star, Heart, Trophy } from "lucide-react";
 import { Venue } from "@/types/venue";
+import { Button } from "@/components/ui/button";
 
 interface VenueCardProps {
   venue: Venue;
@@ -21,68 +22,73 @@ export default function VenueCard({ venue }: VenueCardProps) {
       ? venue.media[0].alt
       : `${venue.name} venue image`;
 
+  // Placeholder values for host type and date range
+  const hostType = venue.owner?.bio?.toLowerCase().includes("business") ? "Business host" : "Individual host";
+  const dateRange = "May 1 – 6"; // Replace with real data if available
+  const currency = "NOK"; // Replace with real data if available
+  const isGuestFavorite = venue.rating >= 4.9;
+
   return (
-    <Link href={`/venues/${venue.id}`} className="group">
-      <article className="h-full flex flex-col rounded-lg overflow-hidden border border-border bg-card transition-all hover:shadow-md">
-        {/* Image */}
-        <div className="relative w-full aspect-[4/3] overflow-hidden">
+    <Link href={`/venues/${venue.id}`} className="group block">
+      <div className="flex flex-col min-h-[360px]">
+        {/* Image section */}
+        <div className="relative w-full aspect-[6/5] bg-muted rounded-2xl overflow-hidden">
           <Image
             src={imageUrl}
             alt={imageAlt}
             fill
-            className="object-cover group-hover:scale-105 transition-transform duration-300"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300 rounded-2xl"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 20vw"
+            loading="lazy"
+            priority={false}
           />
-          {venue.rating > 0 && (
-            <div className="absolute top-2 right-2 flex items-center gap-1 bg-black/70 text-white px-2 py-1 rounded-full text-sm">
-              <Star size={14} className="fill-yellow-500 text-yellow-500" />
-              <span>{venue.rating.toFixed(1)}</span>
-            </div>
+          {/* Guest favorite badge */}
+          {isGuestFavorite && (
+            <span className="absolute top-2 left-2 z-20 flex items-center gap-1 bg-white/90 text-yellow-600 font-medium px-3 py-1 rounded-full text-xs shadow-sm">
+              <Trophy className="h-4 w-4 text-yellow-500" /> Guest favorite
+            </span>
           )}
+          {/* Heart icon */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute top-2 right-2 z-20 bg-white/90 hover:bg-white rounded-full"
+            aria-label="Add to favorites"
+            tabIndex={-1}
+          >
+            <Heart className="h-5 w-5 text-primary" />
+          </Button>
         </div>
-
-        {/* Content */}
-        <div className="p-4 flex flex-col flex-grow">
-          <div className="flex justify-between items-start mb-2">
-            <h3 className="text-lg font-semibold line-clamp-1">{venue.name}</h3>
-          </div>
-
-          <p className="text-sm text-muted-foreground mb-2">
-            {venue.location.city}, {venue.location.country}
-          </p>
-
-          <p className="text-sm line-clamp-2 mb-4 flex-grow">
-            {venue.description}
-          </p>
-
-          {/* Amenities */}
-          <div className="flex gap-3 mb-3">
-            {venue.meta.wifi && (
-              <Wifi size={16} className="text-muted-foreground" />
-            )}
-            {venue.meta.parking && (
-              <Car size={16} className="text-muted-foreground" />
-            )}
-            {venue.meta.breakfast && (
-              <Coffee size={16} className="text-muted-foreground" />
-            )}
-            {venue.meta.pets && (
-              <PawPrint size={16} className="text-muted-foreground" />
-            )}
-          </div>
-
-          {/* Price */}
+        {/* Text section */}
+        <div className="flex flex-col gap-0.5 px-1.5 pt-2 pb-1.5">
           <div className="flex items-center justify-between">
-            <div>
-              <span className="font-bold">${venue.price}</span>
-              <span className="text-muted-foreground text-sm"> / night</span>
-            </div>
-            <div className="text-sm text-muted-foreground">
-              {venue.maxGuests} guest{venue.maxGuests !== 1 ? "s" : ""}
-            </div>
+            <span className="font-semibold text-lg line-clamp-1 text-foreground">
+              {venue.name}
+            </span>
+            {venue.rating > 0 && (
+              <span className="flex items-center gap-1 text-sm text-foreground">
+                <Star size={15} className="fill-yellow-500 text-yellow-500" />
+                {venue.rating.toFixed(2)}
+              </span>
+            )}
+          </div>
+          <span className="text-xs text-muted-foreground line-clamp-1">
+            {venue.location.city}, {venue.location.country}
+          </span>
+          <span className="text-xs text-muted-foreground line-clamp-1">
+            {venue.description || "Sea views"}
+          </span>
+          <span className="text-xs text-muted-foreground">
+            {dateRange} · {hostType}
+          </span>
+          <div className="flex items-baseline gap-1 mt-1 whitespace-nowrap">
+            <span className="font-bold text-lg text-foreground whitespace-nowrap">
+              {venue.price.toLocaleString()} {currency}
+            </span>
+            <span className="text-xs text-muted-foreground whitespace-nowrap flex-shrink-0">night</span>
           </div>
         </div>
-      </article>
+      </div>
     </Link>
   );
 }

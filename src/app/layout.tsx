@@ -1,8 +1,10 @@
-import type { Metadata } from "next";
+"use client";
+
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,11 +16,8 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "Holidaze - Find your perfect vacation rental",
-  description: "Book unique accommodations around the world with Holidaze.",
-  keywords: "vacation rentals, holiday accommodation, venue booking, travel",
-};
+// Metadata has to be imported in a separate file in "use client" components
+// See: src/app/metadata.ts
 
 export default function RootLayout({
   children,
@@ -30,6 +29,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
       >
+        <Toaster />
         <Header />
         <main className="flex-1">{children}</main>
         <Footer />

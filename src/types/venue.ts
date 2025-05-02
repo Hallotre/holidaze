@@ -18,6 +18,18 @@ export interface VenueMeta {
   pets: boolean;
 }
 
+export type VenueCategory =
+  | "apartment"
+  | "house"
+  | "cabin"
+  | "villa"
+  | "hotel"
+  | "unique"
+  | "bnb"
+  | "resort"
+  | "camping"
+  | "other";
+
 export interface Venue {
   id: string;
   name: string;
@@ -32,6 +44,7 @@ export interface Venue {
   created: string;
   updated: string;
   bookings?: Booking[];
+  category?: VenueCategory;
 }
 
 export interface VenueCreate {
@@ -56,6 +69,7 @@ export interface VenueCreate {
     lat?: number;
     lng?: number;
   };
+  category?: VenueCategory;
 }
 
 export interface VenueFilters {
@@ -67,4 +81,5 @@ export interface VenueFilters {
   parking?: boolean;
   breakfast?: boolean;
   pets?: boolean;
+  category?: VenueCategory;
 }

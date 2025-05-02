@@ -4,22 +4,27 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { Search, User, Menu, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 
-interface HeaderProps {
-  isLoggedIn?: boolean;
-  venueManager?: boolean;
-  username?: string;
-}
-
-export default function Header({
-  isLoggedIn = false,
-  venueManager = false,
-  username = "",
-}: HeaderProps) {
+export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [username, setUsername] = useState("");
   const router = useRouter();
   const pathname = usePathname();
+
+  // Detect login state from localStorage
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("accessToken");
+      const user = localStorage.getItem("username");
+      setIsLoggedIn(!!token);
+      setUsername(user || "");
+    }
+  }, [pathname]);
 
   // Close mobile menu when navigating to a new page
   useEffect(() => {
@@ -28,19 +33,25 @@ export default function Header({
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
+    if (!searchQuery.trim()) {
+      toast("Please enter a search term.", { description: "Search cannot be empty." });
+      return;
+    }
+    try {
       router.push(`/venues/search?q=${encodeURIComponent(searchQuery.trim())}`);
+    } catch (error) {
+      toast("Search failed.", { description: "An error occurred while searching. Please try again." });
     }
   };
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
   return (
-    <header className="bg-card sticky top-0 z-50 shadow-sm border-b border-border">
+    <header className="bg-gradient-to-r from-blue-50 to-purple-50 sticky top-0 z-50 shadow-sm border-b border-blue-100">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         {/* Logo */}
         <div className="flex items-center">
-          <Link href="/" className="text-2xl font-bold">
+          <Link href="/" className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 text-transparent bg-clip-text">
             Holidaze
           </Link>
         </div>
@@ -48,126 +59,106 @@ export default function Header({
         {/* Search bar - hide on mobile */}
         <form
           onSubmit={handleSearch}
-          className="hidden md:flex relative w-full max-w-md mx-4"
+          className="hidden md:flex w-full max-w-md mx-4 relative"
         >
-          <input
-            type="text"
-            placeholder="Search venues..."
-            className="w-full px-4 py-2 rounded-full border border-input bg-background"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          <button
-            type="submit"
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-1"
-            aria-label="Search"
-          >
-            <Search size={18} />
-          </button>
+          <div className="relative w-full flex items-center">
+            <span className="absolute left-3 text-blue-400">
+              <Search size={18} />
+            </span>
+            <Input
+              type="text"
+              placeholder="Search venues..."
+              className="w-full pl-10 pr-3 border-blue-200 focus:border-blue-400 focus:ring-blue-400"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              aria-label="Search venues"
+            />
+            <Button
+              type="submit"
+              size="sm"
+              className="ml-2 bg-blue-600 hover:bg-blue-700 text-white"
+              aria-label="Search"
+            >
+              Search
+            </Button>
+          </div>
         </form>
 
         {/* Desktop navigation */}
-        <nav className="hidden md:flex items-center space-x-6">
-          <Link href="/venues" className="hover:text-accent-foreground">
-            Venues
+        <nav className="hidden md:flex items-center space-x-2">
+          <Link href="/venues">
+            <Button variant="ghost" className="text-blue-700 hover:text-blue-800 hover:bg-blue-50">Venues</Button>
           </Link>
-
           {isLoggedIn ? (
             <>
-              {venueManager && (
-                <Link
-                  href="/dashboard/venues"
-                  className="hover:text-accent-foreground"
-                >
-                  My Venues
-                </Link>
-              )}
-              <Link
-                href={`/profile/${username}`}
-                className="flex items-center hover:text-accent-foreground"
-              >
-                <User size={18} className="mr-2" />
-                Profile
+              <Link href="/profile">
+                <Button variant="ghost" className="flex items-center text-blue-700 hover:text-blue-800 hover:bg-blue-50">
+                  <User size={18} className="mr-2 text-blue-500" /> Profile
+                </Button>
               </Link>
             </>
           ) : (
             <>
-              <Link href="/auth/login" className="hover:text-accent-foreground">
-                Login
+              <Link href="/login">
+                <Button variant="ghost" className="text-blue-700 hover:text-blue-800 hover:bg-blue-50">Login</Button>
               </Link>
-              <Link
-                href="/auth/register"
-                className="px-4 py-2 rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
-              >
-                Sign Up
+              <Link href="/register">
+                <Button className="bg-pink-600 hover:bg-pink-700 text-white">Sign Up</Button>
               </Link>
             </>
           )}
         </nav>
 
         {/* Mobile menu button */}
-        <button
+        <Button
           onClick={toggleMenu}
-          className="md:hidden text-foreground"
+          variant="ghost"
+          size="icon"
+          className="md:hidden text-blue-600 hover:text-blue-700 hover:bg-blue-50"
           aria-label={isMenuOpen ? "Close menu" : "Open menu"}
         >
           {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
+        </Button>
       </div>
 
       {/* Mobile menu */}
       {isMenuOpen && (
-        <div className="md:hidden bg-card">
-          <form onSubmit={handleSearch} className="p-4 flex">
-            <input
-              type="text"
-              placeholder="Search venues..."
-              className="w-full px-4 py-2 rounded-l-lg border border-input bg-background"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            <button
-              type="submit"
-              className="px-4 py-2 rounded-r-lg bg-primary text-primary-foreground"
-              aria-label="Search"
-            >
-              <Search size={18} />
-            </button>
+        <div className="md:hidden bg-gradient-to-b from-blue-50 to-white border-t border-blue-100">
+          <form onSubmit={handleSearch} className="p-4 flex gap-2">
+            <div className="relative w-full flex items-center">
+              <span className="absolute left-3 text-blue-400">
+                <Search size={18} />
+              </span>
+              <Input
+                type="text"
+                placeholder="Search venues..."
+                className="w-full pl-10 pr-3 border-blue-200 focus:border-blue-400 focus:ring-blue-400"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                aria-label="Search venues"
+              />
+            </div>
+            <Button type="submit" aria-label="Search" className="bg-blue-600 hover:bg-blue-700 text-white">
+              Search
+            </Button>
           </form>
-          <nav className="flex flex-col px-4 pb-4 space-y-4">
-            <Link href="/venues" className="py-2 border-b border-border">
-              Venues
+          <nav className="flex flex-col px-4 pb-4 space-y-2">
+            <Link href="/venues">
+              <Button variant="ghost" className="w-full justify-start text-blue-700 hover:bg-blue-50">Venues</Button>
             </Link>
             {isLoggedIn ? (
               <>
-                {venueManager && (
-                  <Link
-                    href="/dashboard/venues"
-                    className="py-2 border-b border-border"
-                  >
-                    My Venues
-                  </Link>
-                )}
-                <Link
-                  href={`/profile/${username}`}
-                  className="py-2 border-b border-border"
-                >
-                  Profile
+                <Link href="/profile">
+                  <Button variant="ghost" className="w-full justify-start text-blue-700 hover:bg-blue-50">Profile</Button>
                 </Link>
               </>
             ) : (
               <>
-                <Link
-                  href="/auth/login"
-                  className="py-2 border-b border-border"
-                >
-                  Login
+                <Link href="/auth/login">
+                  <Button variant="ghost" className="w-full justify-start text-blue-700 hover:bg-blue-50">Login</Button>
                 </Link>
-                <Link
-                  href="/auth/register"
-                  className="py-2 text-center rounded-lg bg-primary text-primary-foreground"
-                >
-                  Sign Up
+                <Link href="/auth/register">
+                  <Button className="w-full justify-start bg-pink-600 hover:bg-pink-700 text-white">Sign Up</Button>
                 </Link>
               </>
             )}
