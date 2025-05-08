@@ -70,17 +70,11 @@ export default function ProfilePage() {
       return;
     }
     try {
-      const res = await fetch(`https://v2.api.noroff.dev/holidaze/profiles/${username}`,
-        { headers: { "X-API-Key": API_KEY } });
-      const data = await res.json();
-      if (!res.ok || !data.data) {
-        setError(data?.errors?.[0]?.message || data?.error || "Failed to load profile");
-        setIsLoading(false);
-        return;
-      }
-      setProfile(data.data);
-    } catch (err) {
-      setError("Network error");
+      // Using profileService instead of fetch to properly include auth token
+      const result = await profileService.getProfileByName(username);
+      setProfile(result.data);
+    } catch (err: any) {
+      setError(err?.message || "Failed to load profile");
     } finally {
       setIsLoading(false);
     }
@@ -107,18 +101,15 @@ export default function ProfilePage() {
     if (!profile) return;
     setVenuesLoading(true);
     setVenuesError(null);
-    fetch(`https://v2.api.noroff.dev/holidaze/profiles/${profile.name}/venues`,
-      { headers: { "X-API-Key": API_KEY } })
-      .then((res) => res.json())
-      .then((data) => {
-        if (!data.data) {
-          setVenuesError("Failed to load venues");
-          setVenuesLoading(false);
-          return;
-        }
-        setVenues(data.data);
+
+    // Using profileService instead of fetch to properly include auth token
+    profileService.getProfileVenues(profile.name)
+      .then((result) => {
+        setVenues(result.data);
       })
-      .catch(() => setVenuesError("Network error"))
+      .catch((err) => {
+        setVenuesError(err?.message || "Failed to load venues");
+      })
       .finally(() => setVenuesLoading(false));
   }, [profile]);
 
@@ -319,4 +310,4 @@ export default function ProfilePage() {
       </div>
     </div>
   );
-} 
+}

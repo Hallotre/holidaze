@@ -52,7 +52,7 @@ export function RegisterForm({
         return;
       }
       router.push("/login");
-    } catch (err) {
+    } catch {
       setError("Network error");
     } finally {
       setIsLoading(false);
@@ -93,7 +93,7 @@ export function RegisterForm({
                   type="email"
                   placeholder="blabla@stud.noroff.no"
                   required
-                  pattern="^[\w.-]+@stud\.noroff\.no$"
+                  pattern="^[\\w.-]+@stud\\.noroff\\.no$"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   disabled={isLoading}
@@ -134,7 +134,7 @@ export function RegisterForm({
               </div>
               {error && <div className="text-red-600 text-sm">{error}</div>}
               <div className="flex flex-col gap-3">
-                <Button type="submit" className="w-full" disabled={isLoading}>
+                <Button type="submit" className="w-full bg-primary text-white hover:bg-primary/90" disabled={isLoading}>
                   {isLoading ? "Registering..." : "Register"}
                 </Button>
               </div>
@@ -150,4 +150,4 @@ export function RegisterForm({
       </Card>
     </div>
   );
-} 
+}

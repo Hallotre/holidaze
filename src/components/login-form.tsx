@@ -101,7 +101,7 @@ export function LoginForm({
               </div>
               {error && <div className="text-red-600 text-sm">{error}</div>}
               <div className="flex flex-col gap-3">
-                <Button type="submit" className="w-full" disabled={isLoading}>
+                <Button type="submit" className="w-full bg-primary text-white hover:bg-primary/90" disabled={isLoading}>
                   {isLoading ? "Logging in..." : "Login"}
                 </Button>
               </div>

@@ -8,6 +8,7 @@ import VenueCard from "@/components/venues/VenueCard";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { FilterSidebar, FilterValues } from "@/components/venues/FilterSidebar";
+import { QuickFilters } from "@/components/venues/QuickFilters";
 
 export default function VenuesPage() {
   const [venues, setVenues] = useState<Venue[]>([]);
@@ -33,8 +34,12 @@ export default function VenuesPage() {
         const sort = searchParams.get("sort");
         const sortOrder = searchParams.get("sortOrder") as "asc" | "desc" | undefined;
         const query = searchParams.get("q");
+        const country = searchParams.get("country");
+        const maxPrice = searchParams.get("maxPrice");
+        
         let filteredVenues: Venue[] = [];
         let totalCount = null;
+        
         if (query) {
           const response = await venueService.searchVenues(query);
           filteredVenues = response.data;
@@ -49,6 +54,24 @@ export default function VenuesPage() {
           filteredVenues = response.data;
           totalCount = response.meta?.totalCount || null;
         }
+        
+        // Apply client-side filtering for country if needed
+        if (country) {
+          filteredVenues = filteredVenues.filter(venue => 
+            venue.location?.country?.toLowerCase() === country.toLowerCase()
+          );
+        }
+        
+        // Apply client-side filtering for max price if needed
+        if (maxPrice) {
+          const maxPriceNum = Number(maxPrice);
+          if (!isNaN(maxPriceNum)) {
+            filteredVenues = filteredVenues.filter(venue => 
+              venue.price <= maxPriceNum
+            );
+          }
+        }
+        
         setVenues(filteredVenues);
         setTotal(totalCount);
         setError(null);
@@ -87,6 +110,10 @@ export default function VenuesPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-2">Explore Venues</h1>
+      
+      {/* Quick Filters Section */}
+      <QuickFilters />
+      
       <div className="grid grid-cols-1 gap-8">
         {/* Main Content */}
         <div>
@@ -96,6 +123,28 @@ export default function VenuesPage() {
               Search results for <span className="font-semibold">&ldquo;{searchParams.get("q")}&rdquo;</span>
             </p>
           )}
+          
+          {/* Country filter indicator */}
+          {searchParams.get("country") && (
+            <p className="text-lg mb-6">
+              Venues in <span className="font-semibold">{searchParams.get("country")}</span>
+            </p>
+          )}
+          
+          {/* Budget filter indicator */}
+          {searchParams.get("maxPrice") && searchParams.get("sort") === "price" && (
+            <p className="text-lg mb-6">
+              Budget-friendly venues under <span className="font-semibold">${searchParams.get("maxPrice")}</span>
+            </p>
+          )}
+          
+          {/* Top-rated filter indicator */}
+          {searchParams.get("sort") === "rating" && searchParams.get("sortOrder") === "desc" && (
+            <p className="text-lg mb-6">
+              Top-rated venues
+            </p>
+          )}
+          
           {loading ? (
             <div className="flex justify-center items-center py-20">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
