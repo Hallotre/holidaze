@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { venueService } from "@/lib/api";
 import { getLocalUser, refreshLocalUserSettings } from "@/lib/get-local-user";
-import { VenueCreate, VenueCategory } from "@/types/venue";
+import { VenueCreate } from "@/types/venue";
 import Link from "next/link";
 import { z } from "zod";
 
@@ -14,10 +14,6 @@ const venueSchema = z.object({
   description: z.string().min(10, "Description must be at least 10 characters"),
   price: z.number().min(1, "Price must be at least 1"),
   maxGuests: z.number().min(1, "Maximum guests must be at least 1").max(100, "Maximum guests cannot exceed 100"),
-  category: z.enum([
-    "apartment", "house", "cabin", "villa", "hotel", 
-    "unique", "bnb", "resort", "camping", "other"
-  ]).optional(),
   media: z.array(
     z.object({
       url: z.string().url("Invalid image URL"),
@@ -33,11 +29,8 @@ const venueSchema = z.object({
   location: z.object({
     address: z.string().optional(),
     city: z.string().optional(),
-    zip: z.string().optional(),
     country: z.string().optional(),
-    continent: z.string().optional(),
-    lat: z.number().optional(),
-    lng: z.number().optional()
+    zip: z.string().optional()
   }).optional()
 });
 
@@ -54,7 +47,6 @@ export default function RegisterVenuePage() {
     description: "",
     price: 0,
     maxGuests: 1,
-    category: "apartment",
     media: [{ url: "", alt: "" }],
     meta: {
       wifi: false,
@@ -66,10 +58,7 @@ export default function RegisterVenuePage() {
       address: "",
       city: "",
       zip: "",
-      country: "",
-      continent: "",
-      lat: undefined,
-      lng: undefined
+      country: ""
     }
   });
 
@@ -199,7 +188,6 @@ export default function RegisterVenuePage() {
         description: "",
         price: 0,
         maxGuests: 1,
-        category: "apartment",
         media: [{ url: "", alt: "" }],
         meta: {
           wifi: false,
@@ -211,10 +199,7 @@ export default function RegisterVenuePage() {
           address: "",
           city: "",
           zip: "",
-          country: "",
-          continent: "",
-          lat: undefined,
-          lng: undefined
+          country: ""
         }
       });
       
@@ -234,11 +219,6 @@ export default function RegisterVenuePage() {
       setIsSubmitting(false);
     }
   };
-
-  const categoryOptions: VenueCategory[] = [
-    "apartment", "house", "cabin", "villa", "hotel", 
-    "unique", "bnb", "resort", "camping", "other"
-  ];
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -352,24 +332,6 @@ export default function RegisterVenuePage() {
                     </label>
                   </div>
                 </div>
-                
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Category
-                    <select
-                      name="category"
-                      value={formData.category}
-                      onChange={handleChange}
-                      className="mt-1 w-full border rounded p-2"
-                    >
-                      {categoryOptions.map(option => (
-                        <option key={option} value={option}>
-                          {option.charAt(0).toUpperCase() + option.slice(1)}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
               </div>
               
               {/* Amenities Section */}
@@ -427,21 +389,21 @@ export default function RegisterVenuePage() {
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">Location</h3>
                 
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Address
-                    <input
-                      type="text"
-                      name="location.address"
-                      value={formData.location?.address || ""}
-                      onChange={handleChange}
-                      className="mt-1 w-full border rounded p-2"
-                      placeholder="123 Beach Avenue"
-                    />
-                  </label>
-                </div>
-                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      Address
+                      <input
+                        type="text"
+                        name="location.address"
+                        value={formData.location?.address || ""}
+                        onChange={handleChange}
+                        className="mt-1 w-full border rounded p-2"
+                        placeholder="123 Beach Avenue"
+                      />
+                    </label>
+                  </div>
+                  
                   <div>
                     <label className="block text-sm font-medium mb-1">
                       City
@@ -452,20 +414,6 @@ export default function RegisterVenuePage() {
                         onChange={handleChange}
                         className="mt-1 w-full border rounded p-2"
                         placeholder="Miami"
-                      />
-                    </label>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Zip/Postal Code
-                      <input
-                        type="text"
-                        name="location.zip"
-                        value={formData.location?.zip || ""}
-                        onChange={handleChange}
-                        className="mt-1 w-full border rounded p-2"
-                        placeholder="33101"
                       />
                     </label>
                   </div>
@@ -488,46 +436,14 @@ export default function RegisterVenuePage() {
                   
                   <div>
                     <label className="block text-sm font-medium mb-1">
-                      Continent
+                      Zip/Postal Code
                       <input
                         type="text"
-                        name="location.continent"
-                        value={formData.location?.continent || ""}
+                        name="location.zip"
+                        value={formData.location?.zip || ""}
                         onChange={handleChange}
                         className="mt-1 w-full border rounded p-2"
-                        placeholder="North America"
-                      />
-                    </label>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Latitude
-                      <input
-                        type="number"
-                        name="location.lat"
-                        value={formData.location?.lat || ""}
-                        onChange={handleChange}
-                        step="any"
-                        className="mt-1 w-full border rounded p-2"
-                        placeholder="25.7617"
-                      />
-                    </label>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Longitude
-                      <input
-                        type="number"
-                        name="location.lng"
-                        value={formData.location?.lng || ""}
-                        onChange={handleChange}
-                        step="any"
-                        className="mt-1 w-full border rounded p-2"
-                        placeholder="-80.1918"
+                        placeholder="33101"
                       />
                     </label>
                   </div>
