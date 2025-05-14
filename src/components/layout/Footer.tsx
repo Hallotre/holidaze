@@ -21,12 +21,12 @@ export default function Footer() {
           </Card>
           <Card className="shadow-none border-none bg-transparent p-0">
             <CardContent className="p-0">
-              <h4 className="font-medium mb-4 text-blue-700">Explore</h4>
+              <h4 className="font-medium mb-4 text-pink-600">Explore</h4>
               <ul className="space-y-2">
                 <li>
                   <Link
                     href="/venues"
-                    className="text-gray-600 hover:text-blue-600 transition-colors"
+                    className="text-gray-600 hover:text-pink-600 transition-colors"
                   >
                     All Venues
                   </Link>
@@ -34,7 +34,7 @@ export default function Footer() {
                 <li>
                   <Link
                     href="/venues?sort=price&sortOrder=asc"
-                    className="text-gray-600 hover:text-blue-600 transition-colors"
+                    className="text-gray-600 hover:text-pink-600 transition-colors"
                   >
                     Budget-friendly
                   </Link>
@@ -42,7 +42,7 @@ export default function Footer() {
                 <li>
                   <Link
                     href="/venues?sort=rating&sortOrder=desc"
-                    className="text-gray-600 hover:text-blue-600 transition-colors"
+                    className="text-gray-600 hover:text-pink-600 transition-colors"
                   >
                     Top-rated
                   </Link>

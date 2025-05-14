@@ -65,12 +65,16 @@ export default function Home() {
             Holidaze
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4 mt-8">
-            <Button asChild size="lg" className="text-lg font-medium bg-pink-600 hover:bg-pink-700 transition-colors">
-              <Link href="/venues">Browse Venues</Link>
-            </Button>
-            <Button asChild variant="outline" size="lg" className="text-lg font-medium bg-white text-pink-600 hover:bg-white/90 border-2 border-pink-600">
-              <Link href="/auth/register">Become a Host</Link>
-            </Button>
+            <Link href="/venues">
+              <Button size="lg" className="text-lg font-medium bg-pink-600 hover:bg-pink-700 transition-colors w-full">
+                Browse Venues
+              </Button>
+            </Link>
+            <Link href="/register">
+              <Button variant="outline" size="lg" className="text-lg font-medium bg-white text-pink-600 hover:bg-white/90 border-2 border-pink-600 w-full">
+                Become a Host
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
@@ -101,7 +105,7 @@ export default function Home() {
                     strokeLinejoin="round"
                     className="text-purple-600"
                   >
-                    <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+                    <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1-1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
                   </svg>
                 </div>
                 <h3 className="text-xl font-medium mb-2">Unique Venues</h3>
@@ -230,9 +234,11 @@ export default function Home() {
             Join our community of hosts and start earning by sharing your space
             with travelers
           </p>
-          <Button asChild size="lg" variant="secondary" className="text-lg font-medium bg-white text-violet-600 hover:bg-white/90 border-2 border-white">
-            <Link href="/auth/register?host=true">Become a Host Today</Link>
-          </Button>
+          <Link href="/register">
+            <Button size="lg" variant="secondary" className="text-lg font-medium bg-white text-violet-600 hover:bg-white/90 border-2 border-white">
+              Become a Host Today
+            </Button>
+          </Link>
         </div>
       </section>
     </div>

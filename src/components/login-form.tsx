@@ -101,14 +101,14 @@ export function LoginForm({
               </div>
               {error && <div className="text-red-600 text-sm">{error}</div>}
               <div className="flex flex-col gap-3">
-                <Button type="submit" className="w-full bg-primary text-white hover:bg-primary/90" disabled={isLoading}>
+                <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading ? "Logging in..." : "Login"}
                 </Button>
               </div>
             </div>
             <div className="mt-4 text-center text-sm">
               Don&apos;t have an account?{" "}
-              <a href="/register" className="underline underline-offset-4">
+              <a href="/register" className="text-pink-600 underline underline-offset-4 hover:text-pink-700">
                 Sign up
               </a>
             </div>

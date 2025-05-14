@@ -1,13 +1,13 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation"; // Import useRouter
 import Link from "next/link";
 import Image from "next/image";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { profileService } from "@/lib/api";
 import { ArrowLeft } from "lucide-react";
 import { getLocalUser } from "@/lib/get-local-user";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface UserProfile {
   name: string;
@@ -35,6 +35,7 @@ interface Venue {
 
 export default function PublicProfilePage() {
   const params = useParams();
+  const router = useRouter(); // Initialize useRouter
   const username = Array.isArray(params.username)
     ? params.username[0]
     : (params.username as string);
@@ -97,84 +98,36 @@ export default function PublicProfilePage() {
   if (!profile) return null;
 
   return (
-    <div className="flex flex-col gap-8 min-h-svh w-full items-center justify-center p-6 md:p-10">
-      <div className="w-full max-w-4xl">
-        {/* Back button */}
-        <Link
-          href="/venues"
-          className="flex items-center text-primary mb-6 hover:underline"
-        >
-          <ArrowLeft size={18} className="mr-2" />
-          Back to venues
-        </Link>
+    <div className="container mx-auto px-4 py-8 max-w-6xl">
+      {/* Back button */}
+      <button // Changed from Link to button
+        onClick={() => router.back()} // Use router.back()
+        className="flex items-center text-primary mb-6 hover:underline cursor-pointer"
+      >
+        <ArrowLeft size={18} className="mr-2" />
+        Back
+      </button>
 
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>Profile</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col items-center gap-4">
-            {/* Banner image if available */}
-            {profile.banner?.url && (
-              <div className="relative w-full h-32 mb-4">
-                <Image
-                  src={profile.banner.url}
-                  alt="Profile banner"
-                  fill
-                  className="object-cover rounded-md"
-                  sizes="(max-width: 768px) 100vw, 768px"
-                />
-              </div>
-            )}
-            {/* Avatar image if available */}
-            {profile.avatar?.url ? (
-              <div className="relative w-24 h-24 rounded-full overflow-hidden border -mt-12 bg-white" style={{ zIndex: 1 }}>
-                <Image
-                  src={profile.avatar.url}
-                  alt="Profile avatar"
-                  fill
-                  className="object-cover"
-                  sizes="96px"
-                />
-              </div>
-            ) : (
-              <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center text-3xl font-bold border -mt-12">
-                {profile.name.charAt(0).toUpperCase()}
-              </div>
-            )}
-            <div className="text-lg font-semibold mt-2">{profile.name}</div>
-            {profile.email && <div className="text-gray-600">{profile.email}</div>}
-            {profile.bio && <div className="text-gray-500 text-sm text-center max-w-xs break-words">{profile.bio}</div>}
-            {profile.venueManager && (
-              <div className="mt-2 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
-                Venue Manager
-              </div>
-            )}
-            {isCurrentUser && (
-              <Link href="/profile">
-                <Button variant="default" className="mt-4 bg-primary text-white hover:bg-primary/90">Edit Your Profile</Button>
-              </Link>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* User Venues Section */}
-      <div className="w-full max-w-4xl">
-        <Card>
-          <CardHeader>
-            <CardTitle>{profile.name}'s Venues</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {venuesLoading ? (
-              <div className="text-center py-6">Loading venues...</div>
-            ) : venuesError ? (
-              <div className="text-center text-red-600 py-6">{venuesError}</div>
-            ) : venues.length === 0 ? (
-              <div className="text-center text-gray-500 py-6">{profile.name} has not created any venues yet.</div>
-            ) : (
-              <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+      <div className="flex flex-col md:flex-row gap-6">
+        {/* VENUES SECTION - Left side on larger screens */}
+        <div className="w-full md:w-2/3 order-2 md:order-1">
+          {/* Card component wrapper removed, header styling adjusted */}
+          <div className="flex flex-row items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold">{profile.name}'s Venues</h2>
+          </div>
+          {/* CardContent wrapper removed */}
+          {venuesLoading ? (
+            <div className="text-center py-6">Loading venues...</div>
+          ) : venuesError ? (
+            <div className="text-center text-red-600 py-6">{venuesError}</div>
+          ) : venues.length === 0 ? (
+            <div className="text-center text-gray-500 py-6">{profile.name} has not created any venues yet.</div>
+          ) : (
+            <div className="venues-container pr-2">
+              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 {venues.map((venue) => (
                   <Link href={`/venues/${venue.id}`} key={venue.id}>
+                    {/* Individual venue cards still use Card and CardContent */}
                     <Card key={venue.id} className="border hover:border-primary transition-colors cursor-pointer h-full">
                       <CardContent className="p-3">
                         <div className="relative w-full h-32 mb-3">
@@ -204,9 +157,63 @@ export default function PublicProfilePage() {
                   </Link>
                 ))}
               </div>
-            )}
-          </CardContent>
-        </Card>
+            </div>
+          )}
+        </div>
+
+        {/* PROFILE DETAILS - Right side on larger screens (uses Card, CardHeader, CardTitle, CardContent) */}
+        <div className="w-full md:w-1/3 order-1 md:order-2">
+          <Card className="sticky top-24">
+            <CardHeader>
+              <CardTitle>Profile</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col items-center gap-4">
+              {/* Banner image if available */}
+              {profile.banner?.url && (
+                <div className="relative w-full h-32 mb-4">
+                  <Image
+                    src={profile.banner.url}
+                    alt="Profile banner"
+                    fill
+                    className="object-cover rounded-md"
+                    sizes="(max-width: 768px) 100vw, 384px"
+                  />
+                </div>
+              )}
+              
+              {/* Avatar image if available */}
+              {profile.avatar?.url ? (
+                <div className="relative w-24 h-24 rounded-full overflow-hidden border -mt-12 bg-white" style={{ zIndex: 1 }}>
+                  <Image
+                    src={profile.avatar.url}
+                    alt="Profile avatar"
+                    fill
+                    className="object-cover"
+                    sizes="96px"
+                  />
+                </div>
+              ) : (
+                <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center text-3xl font-bold border -mt-12">
+                  {profile.name.charAt(0).toUpperCase()}
+                </div>
+              )}
+              
+              <div className="text-lg font-semibold mt-2">{profile.name}</div>
+              {profile.email && <div className="text-gray-600">{profile.email}</div>}
+              {profile.bio && <div className="text-gray-500 text-sm text-center max-w-xs break-words">{profile.bio}</div>}
+              {profile.venueManager && (
+                <div className="mt-2 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
+                  Venue Manager
+                </div>
+              )}
+              {isCurrentUser && (
+                <Link href="/profile">
+                  <Button variant="primary" className="mt-4">Edit Your Profile</Button>
+                </Link>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );

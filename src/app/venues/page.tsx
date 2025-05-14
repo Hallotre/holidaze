@@ -11,79 +11,112 @@ import { FilterSidebar, FilterValues } from "@/components/venues/FilterSidebar";
 import { QuickFilters } from "@/components/venues/QuickFilters";
 
 export default function VenuesPage() {
-  const [venues, setVenues] = useState<Venue[]>([]);
+  const [venues, setVenues] = useState<Venue[]>([]); // Will hold venues for the current page
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [total, setTotal] = useState<number | null>(null);
+  const [total, setTotal] = useState<number | null>(null); // Will hold total after ALL filters
   const searchParams = useSearchParams();
   const router = useRouter();
 
   // Pagination state
   const pageParam = Number(searchParams.get("page")) || 1;
-  const [page, setPage] = useState(pageParam);
+  const [currentPage, setCurrentPage] = useState(pageParam);
   const limit = 20; // venues per page
 
   useEffect(() => {
-    setPage(pageParam); // keep state in sync with URL
+    setCurrentPage(pageParam); // keep state in sync with URL
   }, [pageParam]);
 
   useEffect(() => {
-    async function fetchVenues() {
+    async function loadAndFilterVenues() {
+      setLoading(true);
+      setError(null);
       try {
-        setLoading(true);
-        const sort = searchParams.get("sort");
+        const sort = searchParams.get("sort") || undefined; // Ensure undefined if null
         const sortOrder = searchParams.get("sortOrder") as "asc" | "desc" | undefined;
         const query = searchParams.get("q");
-        const country = searchParams.get("country");
-        const maxPrice = searchParams.get("maxPrice");
-        
-        let filteredVenues: Venue[] = [];
-        let totalCount = null;
-        
+
+        let venuesFromApi: Venue[] = [];
+
         if (query) {
+          // searchVenues doesn't support sorting or pagination in the current api.ts
+          // It's assumed to return all venues matching the query.
           const response = await venueService.searchVenues(query);
-          filteredVenues = response.data;
-          totalCount = response.meta?.totalCount || null;
+          venuesFromApi = response.data; // Assuming response.data is Venue[]
         } else {
-          const response = await venueService.getVenues({
-            limit,
-            page,
-            sort: sort || undefined,
-            sortOrder: sortOrder,
+          // Fetch venues if no search query. API-side sorting is applied here.
+          // Changed limit from 1000 to 100 to avoid 400 error.
+          const response = await venueService.getVenues({ 
+            sort, 
+            sortOrder,
+            limit: 100, // Fetch up to 100 venues for client-side filtering
+            // page: 1 // Defaults to 1 in getVenues if not specified
           });
-          filteredVenues = response.data;
-          totalCount = response.meta?.totalCount || null;
+          venuesFromApi = response.data;
         }
-        
-        // Apply client-side filtering for country if needed
+
+        // Apply all client-side filters
+        const country = searchParams.get("country");
+        const maxPriceStr = searchParams.get("maxPrice");
+        const wifi = searchParams.get("wifi") === "true";
+        const parking = searchParams.get("parking") === "true";
+        const breakfast = searchParams.get("breakfast") === "true";
+        const pets = searchParams.get("pets") === "true";
+
+        let clientFilteredList = venuesFromApi;
+
         if (country) {
-          filteredVenues = filteredVenues.filter(venue => 
+          clientFilteredList = clientFilteredList.filter((venue: Venue) => 
             venue.location?.country?.toLowerCase() === country.toLowerCase()
           );
         }
         
-        // Apply client-side filtering for max price if needed
-        if (maxPrice) {
-          const maxPriceNum = Number(maxPrice);
+        if (maxPriceStr) {
+          const maxPriceNum = Number(maxPriceStr);
           if (!isNaN(maxPriceNum)) {
-            filteredVenues = filteredVenues.filter(venue => 
+            clientFilteredList = clientFilteredList.filter((venue: Venue) => 
               venue.price <= maxPriceNum
             );
           }
         }
+
+        if (wifi) {
+          clientFilteredList = clientFilteredList.filter((venue: Venue) => venue.meta?.wifi);
+        }
+        if (parking) {
+          clientFilteredList = clientFilteredList.filter((venue: Venue) => venue.meta?.parking);
+        }
+        if (breakfast) {
+          clientFilteredList = clientFilteredList.filter((venue: Venue) => venue.meta?.breakfast);
+        }
+        if (pets) {
+          clientFilteredList = clientFilteredList.filter((venue: Venue) => venue.meta?.pets);
+        }
         
-        setVenues(filteredVenues);
-        setTotal(totalCount);
+        // If there was a search query and client-side sorting is desired (as API search doesn't sort)
+        // This is an example if sorting needs to be re-applied client side after search
+        // For now, we rely on API sort for non-search, and no sort for search
+        // if (query && sort) { ... client side sort logic ... }
+
+        setTotal(clientFilteredList.length); // Total count after all filters
+
+        // Client-side pagination
+        const startIndex = (currentPage - 1) * limit;
+        const endIndex = startIndex + limit;
+        setVenues(clientFilteredList.slice(startIndex, endIndex));
+        
         setError(null);
       } catch (err) {
-        console.error("Error fetching venues:", err);
+        console.error("Error loading or filtering venues:", err);
         setError("Failed to load venues. Please try again later.");
+        setVenues([]);
+        setTotal(0);
       } finally {
         setLoading(false);
       }
     }
-    fetchVenues();
-  }, [searchParams, page]);
+    loadAndFilterVenues();
+  }, [searchParams, currentPage, limit]);
 
   // Pagination controls
   const totalPages = total ? Math.ceil(total / limit) : null;
@@ -94,16 +127,16 @@ export default function VenuesPage() {
   };
 
   // Helper to generate pagination range with ellipsis
-  function getPaginationRange(current: number, total: number, delta = 2) {
+  function getPaginationRange(current: number, totalPagesToUse: number, delta = 2) {
     const range: (number | string)[] = [];
     const left = Math.max(2, current - delta);
-    const right = Math.min(total - 1, current + delta);
+    const right = Math.min(totalPagesToUse - 1, current + delta);
 
     range.push(1);
     if (left > 2) range.push('...');
     for (let i = left; i <= right; i++) range.push(i);
-    if (right < total - 1) range.push('...');
-    if (total > 1) range.push(total);
+    if (right < totalPagesToUse - 1) range.push('...');
+    if (totalPagesToUse > 1) range.push(totalPagesToUse);
     return range;
   }
 
@@ -169,25 +202,25 @@ export default function VenuesPage() {
                 <nav className="flex justify-center items-center gap-2 mt-10" aria-label="Pagination">
                   <button
                     className="px-3 py-1 rounded border bg-muted text-foreground disabled:opacity-50"
-                    onClick={() => handlePageChange(page - 1)}
-                    disabled={page <= 1}
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage <= 1}
                     aria-label="Previous page"
                   >
                     Previous
                   </button>
-                  {getPaginationRange(page, totalPages).map((item, idx) =>
+                  {totalPages && getPaginationRange(currentPage, totalPages).map((item, idx) => // Added null check for totalPages
                     typeof item === 'number' ? (
                       <button
                         key={item}
                         className={`px-3 py-1 rounded border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 focus-visible:ring-offset-2
-                          ${item === page
+                          ${item === currentPage
                             ? 'bg-primary text-gray-900 ring-2 ring-primary/80 ring-offset-2 shadow-md z-10'
                             : 'bg-muted text-foreground hover:bg-primary/10'}
                         `}
                         onClick={() => handlePageChange(item)}
-                        aria-current={item === page ? 'page' : undefined}
+                        aria-current={item === currentPage ? 'page' : undefined}
                         aria-label={`Page ${item}`}
-                        disabled={item === page}
+                        disabled={item === currentPage}
                       >
                         {item}
                       </button>
@@ -197,8 +230,8 @@ export default function VenuesPage() {
                   )}
                   <button
                     className="px-3 py-1 rounded border bg-muted text-foreground disabled:opacity-50"
-                    onClick={() => handlePageChange(page + 1)}
-                    disabled={page >= totalPages}
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={totalPages ? currentPage >= totalPages : true} // Added null check for totalPages
                     aria-label="Next page"
                   >
                     Next

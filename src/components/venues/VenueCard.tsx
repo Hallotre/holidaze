@@ -50,9 +50,9 @@ export default function VenueCard({ venue }: VenueCardProps) {
           )}
           {/* Heart icon */}
           <Button
-            variant="ghost"
-            size="icon"
-            className="absolute top-2 right-2 z-20 bg-white/90 hover:bg-white rounded-full"
+            variant="outline"
+            size="sm"
+            className="absolute top-2 right-2 z-20 bg-white/90 hover:bg-white rounded-full p-2 h-9 w-9 flex items-center justify-center"
             aria-label="Add to favorites"
             tabIndex={-1}
           >

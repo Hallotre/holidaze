@@ -1,0 +1,16 @@
+/* Custom styles for Sonner toast notifications */
+.sonner-toast-description {
+  color: #db2777 !important; /* Pink-600 */
+  font-weight: 500 !important;
+}
+
+.sonner-toast {
+  border: 2px solid #fbcfe8 !important; /* Pink-200 */
+  background-color: white !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+}
+
+.sonner-toast-title {
+  color: #be185d !important; /* Pink-700 */
+  font-weight: 600 !important;
+}

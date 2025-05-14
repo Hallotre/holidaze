@@ -62,13 +62,13 @@ export default function Header() {
           className="hidden md:flex w-full max-w-md mx-4 relative"
         >
           <div className="relative w-full flex items-center">
-            <span className="absolute left-3 text-blue-400">
+            <span className="absolute left-3 text-pink-400">
               <Search size={18} />
             </span>
             <Input
               type="text"
               placeholder="Search venues..."
-              className="w-full pl-10 pr-3 border-blue-200 focus:border-blue-400 focus:ring-blue-400"
+              className="w-full pl-10 pr-3 border-pink-200 focus:border-pink-400 focus:ring-pink-400"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               aria-label="Search venues"
@@ -76,7 +76,7 @@ export default function Header() {
             <Button
               type="submit"
               size="sm"
-              className="ml-2 bg-blue-600 hover:bg-blue-700 text-white"
+              className="ml-2"
               aria-label="Search"
             >
               Search
@@ -87,23 +87,41 @@ export default function Header() {
         {/* Desktop navigation */}
         <nav className="hidden md:flex items-center space-x-2">
           <Link href="/venues">
-            <Button variant="ghost" className="text-blue-700 hover:text-blue-800 hover:bg-blue-50">Venues</Button>
+            <Button 
+              variant="outline" 
+              className="border-2 border-pink-300 text-pink-600 hover:bg-pink-50"
+            >
+              Venues
+            </Button>
           </Link>
           {isLoggedIn ? (
             <>
               <Link href="/profile">
-                <Button variant="ghost" className="flex items-center text-blue-700 hover:text-blue-800 hover:bg-blue-50">
-                  <User size={18} className="mr-2 text-blue-500" /> Profile
+                <Button 
+                  variant="outline" 
+                  className="border-2 border-pink-300 text-pink-600 hover:bg-pink-50 flex items-center"
+                >
+                  <User size={18} className="mr-2 text-pink-500" /> Profile
                 </Button>
               </Link>
             </>
           ) : (
             <>
               <Link href="/login">
-                <Button variant="ghost" className="text-blue-700 hover:text-blue-800 hover:bg-blue-50">Login</Button>
+                <Button 
+                  variant="outline" 
+                  className="border-2 border-pink-300 text-pink-600 hover:bg-pink-50"
+                >
+                  Login
+                </Button>
               </Link>
               <Link href="/register">
-                <Button className="bg-pink-600 hover:bg-pink-700 text-white">Sign Up</Button>
+                <Button 
+                  variant="primary" 
+                  className="border-2 border-pink-700"
+                >
+                  Sign Up
+                </Button>
               </Link>
             </>
           )}
@@ -112,9 +130,9 @@ export default function Header() {
         {/* Mobile menu button */}
         <Button
           onClick={toggleMenu}
-          variant="ghost"
-          size="icon"
-          className="md:hidden text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+          variant="outline"
+          size="sm"
+          className="md:hidden text-pink-600 border-pink-300 hover:bg-pink-50"
           aria-label={isMenuOpen ? "Close menu" : "Open menu"}
         >
           {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -126,39 +144,59 @@ export default function Header() {
         <div className="md:hidden bg-gradient-to-b from-blue-50 to-white border-t border-blue-100">
           <form onSubmit={handleSearch} className="p-4 flex gap-2">
             <div className="relative w-full flex items-center">
-              <span className="absolute left-3 text-blue-400">
+              <span className="absolute left-3 text-pink-400">
                 <Search size={18} />
               </span>
               <Input
                 type="text"
                 placeholder="Search venues..."
-                className="w-full pl-10 pr-3 border-blue-200 focus:border-blue-400 focus:ring-blue-400"
+                className="w-full pl-10 pr-3 border-pink-200 focus:border-pink-400 focus:ring-pink-400"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 aria-label="Search venues"
               />
             </div>
-            <Button type="submit" aria-label="Search" className="bg-blue-600 hover:bg-blue-700 text-white">
+            <Button type="submit" aria-label="Search">
               Search
             </Button>
           </form>
           <nav className="flex flex-col px-4 pb-4 space-y-2">
             <Link href="/venues">
-              <Button variant="ghost" className="w-full justify-start text-blue-700 hover:bg-blue-50">Venues</Button>
+              <Button 
+                variant="outline" 
+                className="w-full justify-start border-2 border-pink-300 text-pink-600 hover:bg-pink-50"
+              >
+                Venues
+              </Button>
             </Link>
             {isLoggedIn ? (
               <>
                 <Link href="/profile">
-                  <Button variant="ghost" className="w-full justify-start text-blue-700 hover:bg-blue-50">Profile</Button>
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start border-2 border-pink-300 text-pink-600 hover:bg-pink-50"
+                  >
+                    Profile
+                  </Button>
                 </Link>
               </>
             ) : (
               <>
-                <Link href="/auth/login">
-                  <Button variant="ghost" className="w-full justify-start text-blue-700 hover:bg-blue-50">Login</Button>
+                <Link href="/login">
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start border-2 border-pink-300 text-pink-600 hover:bg-pink-50"
+                  >
+                    Login
+                  </Button>
                 </Link>
-                <Link href="/auth/register">
-                  <Button className="w-full justify-start bg-pink-600 hover:bg-pink-700 text-white">Sign Up</Button>
+                <Link href="/register">
+                  <Button 
+                    variant="primary" 
+                    className="w-full justify-start border-2 border-pink-700"
+                  >
+                    Sign Up
+                  </Button>
                 </Link>
               </>
             )}
