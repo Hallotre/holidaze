@@ -5,6 +5,7 @@ import "./globals.css";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { Toaster } from "@/components/ui/sonner";
+import "mapbox-gl/dist/mapbox-gl.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

@@ -8,6 +8,7 @@ import { getLocalUser, refreshLocalUserSettings } from "@/lib/get-local-user";
 import { VenueCreate } from "@/types/venue";
 import Link from "next/link";
 import { z } from "zod";
+import { MapboxAddressInput } from "@/components/mapbox-address-input";
 
 const venueSchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters").max(50, "Name cannot exceed 50 characters"),
@@ -30,7 +31,9 @@ const venueSchema = z.object({
     address: z.string().optional(),
     city: z.string().optional(),
     country: z.string().optional(),
-    zip: z.string().optional()
+    zip: z.string().optional(),
+    lat: z.number().optional(),
+    lng: z.number().optional()
   }).optional()
 });
 
@@ -58,7 +61,9 @@ export default function RegisterVenuePage() {
       address: "",
       city: "",
       zip: "",
-      country: ""
+      country: "",
+      lat: undefined,
+      lng: undefined
     }
   });
 
@@ -159,6 +164,40 @@ export default function RegisterVenuePage() {
     });
   };
 
+  // Handle address autocomplete selection
+  const handleAddressSelect = (value: string, locationData?: {
+    address?: string;
+    city?: string;
+    country?: string;
+    zip?: string;
+    lat?: number;
+    lng?: number;
+  }) => {
+    if (locationData) {
+      setFormData(prev => ({
+        ...prev,
+        location: {
+          ...prev.location,
+          address: locationData.address || prev.location?.address || '',
+          city: locationData.city || prev.location?.city || '',
+          country: locationData.country || prev.location?.country || '',
+          zip: locationData.zip || prev.location?.zip || '',
+          lat: locationData.lat,
+          lng: locationData.lng
+        }
+      }));
+    } else {
+      // If just typing manually without selecting from dropdown
+      setFormData(prev => ({
+        ...prev,
+        location: {
+          ...prev.location,
+          address: value
+        }
+      }));
+    }
+  };
+
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -199,7 +238,9 @@ export default function RegisterVenuePage() {
           address: "",
           city: "",
           zip: "",
-          country: ""
+          country: "",
+          lat: undefined,
+          lng: undefined
         }
       });
       
@@ -208,12 +249,13 @@ export default function RegisterVenuePage() {
         router.push(`/venues/${response.data.id}`);
       }, 2000);
       
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (err instanceof z.ZodError) {
         const firstError = err.errors[0];
         setError(`Validation error: ${firstError.message}`);
       } else {
-        setError(err?.message || "Failed to register venue");
+        const errorMessage = err instanceof Error ? err.message : "Failed to register venue";
+        setError(errorMessage);
       }
     } finally {
       setIsSubmitting(false);
@@ -232,7 +274,7 @@ export default function RegisterVenuePage() {
               {error}
               {!isVenueManager && (
                 <div className="mt-2 flex flex-col gap-2">
-                  <p className="text-sm">You need to check the "Venue Manager" option in your profile settings.</p>
+                  <p className="text-sm">You need to check the &quot;Venue Manager&quot; option in your profile settings.</p>
                   <Link href="/profile" className="bg-blue-600 text-white px-4 py-2 rounded-md text-center hover:bg-blue-700 transition-colors">
                     Update Profile Settings
                   </Link>
@@ -393,13 +435,12 @@ export default function RegisterVenuePage() {
                   <div>
                     <label className="block text-sm font-medium mb-1">
                       Address
-                      <input
-                        type="text"
-                        name="location.address"
+                      <MapboxAddressInput
                         value={formData.location?.address || ""}
-                        onChange={handleChange}
-                        className="mt-1 w-full border rounded p-2"
+                        onChange={handleAddressSelect}
                         placeholder="123 Beach Avenue"
+                        className="mt-1 w-full border rounded p-2"
+                        disabled={isSubmitting}
                       />
                     </label>
                   </div>
