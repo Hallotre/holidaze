@@ -17,14 +17,14 @@ export default function TermsOfServicePage() {
         <section className="mb-8">
           <h2 className="text-2xl font-semibold text-pink-600 mb-4">1. Acceptance of Terms</h2>
           <p>
-            By accessing or using the Holidaze website, mobile application, or any related services (collectively, the "Platform"), you ("User," "you," or "your") agree to be bound by these Terms of Service ("Terms"), our Privacy Policy, and all other policies referenced herein. If you do not agree to these Terms, you may not use the Platform.
+            By accessing or using the Holidaze website, mobile application, or any related services (collectively, the &quot;Platform&quot;), you (&quot;User,&quot; &quot;you,&quot; or &quot;your&quot;) agree to be bound by these Terms of Service (&quot;Terms&quot;), our Privacy Policy, and all other policies referenced herein. If you do not agree to these Terms, you may not use the Platform.
           </p>
         </section>
 
         <section className="mb-8">
           <h2 className="text-2xl font-semibold text-pink-600 mb-4">2. Description of Services</h2>
           <p>
-            Holidaze provides an online marketplace where individuals and entities can list, discover, book, and review venues for events ("Services"). Holidaze acts solely as an intermediary to facilitate these transactions and is not a party to any agreement between Users and Venue Hosts.
+            Holidaze provides an online marketplace where individuals and entities can list, discover, book, and review venues for events (&quot;Services&quot;). Holidaze acts solely as an intermediary to facilitate these transactions and is not a party to any agreement between Users and Venue Hosts.
           </p>
         </section>
 
@@ -132,7 +132,7 @@ export default function TermsOfServicePage() {
             <li>Use the Platform for lawful purposes only.</li>
             <li>Not post, upload, or transmit any content that is false, misleading, defamatory, obscene, or infringes on the rights of others.</li>
             <li>Not use the Platform to harass, threaten, or discriminate against others.</li>
-            <li>Not attempt to circumvent Holidaze's payment system or solicit off-platform transactions.</li>
+            <li>Not attempt to circumvent Holidaze&apos;s payment system or solicit off-platform transactions.</li>
           </ul>
         </section>
 
@@ -164,7 +164,7 @@ export default function TermsOfServicePage() {
         <section className="mb-8">
           <h2 className="text-2xl font-semibold text-pink-600 mb-4">13. Disclaimers</h2>
           <ul className="list-disc pl-6 space-y-2">
-            <li>Holidaze provides the Platform and Services "as is" and "as available."</li>
+            <li>Holidaze provides the Platform and Services &quot;as is&quot; and &quot;as available.&quot;</li>
             <li>Holidaze does not guarantee the accuracy, completeness, or reliability of any listings or content.</li>
             <li>Holidaze is not responsible for the conduct of Users or Hosts, or for any loss or damage arising from bookings or venue use.</li>
           </ul>
@@ -175,7 +175,7 @@ export default function TermsOfServicePage() {
           <p>To the maximum extent permitted by law:</p>
           <ul className="list-disc pl-6 space-y-2 mt-3">
             <li>Holidaze is not liable for any indirect, incidental, special, consequential, or punitive damages.</li>
-            <li>Holidaze's total liability for any claim arising out of or relating to these Terms or the Platform will not exceed the greater of (a) the amount you paid Holidaze in the 12 months prior to the claim, or (b) $100 USD.</li>
+            <li>Holidaze&apos;s total liability for any claim arising out of or relating to these Terms or the Platform will not exceed the greater of (a) the amount you paid Holidaze in the 12 months prior to the claim, or (b) $100 USD.</li>
           </ul>
         </section>
 
@@ -214,7 +214,7 @@ export default function TermsOfServicePage() {
           <h2 className="text-2xl font-semibold text-pink-600 mb-4">19. Miscellaneous</h2>
           <ul className="list-disc pl-6 space-y-2">
             <li>If any provision of these Terms is found invalid, the remaining provisions will remain in full force and effect.</li>
-            <li>Holidaze's failure to enforce any right or provision does not constitute a waiver.</li>
+            <li>Holidaze&apos;s failure to enforce any right or provision does not constitute a waiver.</li>
             <li>These Terms constitute the entire agreement between you and Holidaze regarding the Platform.</li>
           </ul>
         </section>

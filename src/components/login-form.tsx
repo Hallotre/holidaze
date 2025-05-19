@@ -1,17 +1,17 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export function LoginForm({
   className,
@@ -49,7 +49,7 @@ export function LoginForm({
       } else {
         setError("No access token or username returned");
       }
-    } catch (err) {
+    } catch {
       setError("Network error");
     } finally {
       setIsLoading(false);
@@ -76,7 +76,7 @@ export function LoginForm({
                   placeholder="blabla@stud.noroff.no"
                   required
                   value={email}
-                  onChange={e => setEmail(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
                   disabled={isLoading}
                 />
               </div>
@@ -95,7 +95,7 @@ export function LoginForm({
                   type="password"
                   required
                   value={password}
-                  onChange={e => setPassword(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
                   disabled={isLoading}
                 />
               </div>
@@ -116,5 +116,5 @@ export function LoginForm({
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

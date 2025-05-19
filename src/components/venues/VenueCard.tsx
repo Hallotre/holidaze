@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Wifi, Car, Coffee, PawPrint, Star, Heart, Trophy } from "lucide-react";
+import { Star, Heart, Trophy } from "lucide-react";
 import { Venue } from "@/types/venue";
 import { Button } from "@/components/ui/button";
 

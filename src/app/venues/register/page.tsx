@@ -1,264 +1,82 @@
 "use client";
+
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { venueService } from "@/lib/api";
 import { getLocalUser, refreshLocalUserSettings } from "@/lib/get-local-user";
-import { VenueCreate } from "@/types/venue";
-import Link from "next/link";
-import { z } from "zod";
-import { MapboxAddressInput } from "@/components/mapbox-address-input";
+import { useVenueForm } from "@/lib/hooks/useVenueForm";
+import { logError } from "@/lib/utils/error-handler";
 
-const venueSchema = z.object({
-  name: z.string().min(3, "Name must be at least 3 characters").max(50, "Name cannot exceed 50 characters"),
-  description: z.string().min(10, "Description must be at least 10 characters"),
-  price: z.number().min(1, "Price must be at least 1"),
-  maxGuests: z.number().min(1, "Maximum guests must be at least 1").max(100, "Maximum guests cannot exceed 100"),
-  media: z.array(
-    z.object({
-      url: z.string().url("Invalid image URL"),
-      alt: z.string().optional()
-    })
-  ).optional(),
-  meta: z.object({
-    wifi: z.boolean().optional(),
-    parking: z.boolean().optional(),
-    breakfast: z.boolean().optional(),
-    pets: z.boolean().optional()
-  }).optional(),
-  location: z.object({
-    address: z.string().optional(),
-    city: z.string().optional(),
-    country: z.string().optional(),
-    zip: z.string().optional(),
-    lat: z.number().optional(),
-    lng: z.number().optional()
-  }).optional()
-});
+// Import form section components
+import { BasicInformation } from "@/components/venue-form/basic-information";
+import { Amenities } from "@/components/venue-form/amenities";
+import { Location } from "@/components/venue-form/location";
+import { Media } from "@/components/venue-form/media";
+import { SuccessMessage } from "@/components/venue-form/success-message";
+import { ErrorMessage } from "@/components/venue-form/error-message";
 
+/**
+ * RegisterVenuePage - Page component for venue registration
+ * 
+ * This component handles:
+ * - Checking if the user is a venue manager
+ * - Rendering the venue registration form
+ * - Form submission and error handling
+ */
 export default function RegisterVenuePage() {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
-  const [isVenueManager, setIsVenueManager] = useState(false);
   const router = useRouter();
-
-  // Initialize state for form inputs
-  const [formData, setFormData] = useState<VenueCreate>({
-    name: "",
-    description: "",
-    price: 0,
-    maxGuests: 1,
-    media: [{ url: "", alt: "" }],
-    meta: {
-      wifi: false,
-      parking: false,
-      breakfast: false,
-      pets: false
-    },
-    location: {
-      address: "",
-      city: "",
-      zip: "",
-      country: "",
-      lat: undefined,
-      lng: undefined
-    }
-  });
+  const [isVenueManager, setIsVenueManager] = useState(false);
+  const [createdVenueId, setCreatedVenueId] = useState<string | undefined>(undefined);
+  
+  // Use our custom form hook
+  const {
+    formData,
+    isSubmitting,
+    error,
+    success,
+    handleChange,
+    handleCheckboxChange,
+    handleMediaChange,
+    addMediaField,
+    removeMediaField,
+    handleAddressSelect,
+    handleSubmit
+  } = useVenueForm();
 
   // Check if user is a venue manager
   useEffect(() => {
-    // Use the refreshed user settings to ensure we have the latest data
-    const user = refreshLocalUserSettings();
-    if (!user) {
-      router.replace("/login");
-      return;
-    }
-    
-    if (!user.venueManager) {
-      setIsVenueManager(false);
-      setError("You need to be a venue manager to register venues. Please update your profile.");
-    } else {
-      setIsVenueManager(true);
+    try {
+      // Use the refreshed user settings to ensure we have the latest data
+      const user = refreshLocalUserSettings();
+      if (!user) {
+        router.replace("/login");
+        return;
+      }
+      
+      if (!user.venueManager) {
+        setIsVenueManager(false);
+      } else {
+        setIsVenueManager(true);
+      }
+    } catch (err) {
+      logError(err, "RegisterVenuePage:checkVenueManager");
     }
   }, [router]);
 
-  // Handle form input changes
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value, type } = e.target;
-    
-    if (name.includes(".")) {
-      const [parent, child] = name.split(".");
-      setFormData(prev => {
-        // Type guard to ensure we're working with an object
-        const parentObj = prev[parent as keyof VenueCreate];
-        if (parentObj && typeof parentObj === 'object') {
-          return {
-            ...prev,
-            [parent]: {
-              ...parentObj,
-              [child]: type === "number" ? Number(value) : value
-            }
-          };
-        }
-        return prev;
-      });
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [name]: type === "number" ? Number(value) : value
-      }));
-    }
-  };
-
-  // Handle checkbox changes for meta fields
-  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, checked } = e.target;
-    const [parent, child] = name.split(".");
-    
-    setFormData(prev => {
-      // Type guard to ensure we're working with an object
-      const parentObj = prev[parent as keyof VenueCreate];
-      if (parentObj && typeof parentObj === 'object') {
-        return {
-          ...prev,
-          [parent]: {
-            ...parentObj,
-            [child]: checked
-          }
-        };
-      }
-      return prev;
+  // Handle form submission with venue ID callback
+  const onSubmitForm = async (e: React.FormEvent<HTMLFormElement>) => {
+    await handleSubmit(e, (venueId) => {
+      setCreatedVenueId(venueId);
     });
   };
 
-  // Handle media array changes
-  const handleMediaChange = (index: number, field: "url" | "alt", value: string) => {
-    setFormData(prev => {
-      const updatedMedia = [...(prev.media || [])];
-      
-      if (!updatedMedia[index]) {
-        updatedMedia[index] = { url: "", alt: "" };
-      }
-      
-      updatedMedia[index][field] = value;
-      return { ...prev, media: updatedMedia };
-    });
-  };
-
-  // Add another media field
-  const addMediaField = () => {
-    setFormData(prev => ({
-      ...prev,
-      media: [...(prev.media || []), { url: "", alt: "" }]
-    }));
-  };
-
-  // Remove a media field
-  const removeMediaField = (index: number) => {
-    setFormData(prev => {
-      const updatedMedia = [...(prev.media || [])];
-      updatedMedia.splice(index, 1);
-      return { ...prev, media: updatedMedia.length ? updatedMedia : [{ url: "", alt: "" }] };
-    });
-  };
-
-  // Handle address autocomplete selection
-  const handleAddressSelect = (value: string, locationData?: {
-    address?: string;
-    city?: string;
-    country?: string;
-    zip?: string;
-    lat?: number;
-    lng?: number;
-  }) => {
-    if (locationData) {
-      setFormData(prev => ({
-        ...prev,
-        location: {
-          ...prev.location,
-          address: locationData.address || prev.location?.address || '',
-          city: locationData.city || prev.location?.city || '',
-          country: locationData.country || prev.location?.country || '',
-          zip: locationData.zip || prev.location?.zip || '',
-          lat: locationData.lat,
-          lng: locationData.lng
-        }
-      }));
-    } else {
-      // If just typing manually without selecting from dropdown
-      setFormData(prev => ({
-        ...prev,
-        location: {
-          ...prev.location,
-          address: value
-        }
-      }));
-    }
-  };
-
-  // Handle form submission
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setError(null);
-    setSuccess(null);
-    
-    try {
-      setIsSubmitting(true);
-      
-      // Validate form data
-      const validatedData = venueSchema.parse(formData);
-      
-      // Clean up data before submission (remove empty fields)
-      const cleanedMedia = formData.media?.filter(item => item.url.trim() !== "") || [];
-      const submissionData: VenueCreate = {
-        ...validatedData,
-        media: cleanedMedia.length ? cleanedMedia : undefined
-      };
-      
-      // Submit venue data
-      const response = await venueService.createVenue(submissionData);
-      setSuccess(`Venue "${response.data.name}" has been successfully registered!`);
-      
-      // Reset form
-      setFormData({
-        name: "",
-        description: "",
-        price: 0,
-        maxGuests: 1,
-        media: [{ url: "", alt: "" }],
-        meta: {
-          wifi: false,
-          parking: false,
-          breakfast: false,
-          pets: false
-        },
-        location: {
-          address: "",
-          city: "",
-          zip: "",
-          country: "",
-          lat: undefined,
-          lng: undefined
-        }
-      });
-      
-      // Redirect to the new venue page after a short delay
-      setTimeout(() => {
-        router.push(`/venues/${response.data.id}`);
-      }, 2000);
-      
-    } catch (err: unknown) {
-      if (err instanceof z.ZodError) {
-        const firstError = err.errors[0];
-        setError(`Validation error: ${firstError.message}`);
-      } else {
-        const errorMessage = err instanceof Error ? err.message : "Failed to register venue";
-        setError(errorMessage);
-      }
-    } finally {
-      setIsSubmitting(false);
+  // Handle refreshing user settings
+  const handleRefreshSettings = () => {
+    refreshLocalUserSettings();
+    const user = getLocalUser();
+    if (user && user.venueManager) {
+      setIsVenueManager(true);
     }
   };
 
@@ -269,288 +87,59 @@ export default function RegisterVenuePage() {
           <CardTitle className="text-2xl">Register New Venue</CardTitle>
         </CardHeader>
         <CardContent>
+          {/* Error message */}
           {error && (
-            <div className="bg-red-50 text-red-600 p-4 rounded-md mb-6">
-              {error}
-              {!isVenueManager && (
-                <div className="mt-2 flex flex-col gap-2">
-                  <p className="text-sm">You need to check the &quot;Venue Manager&quot; option in your profile settings.</p>
-                  <Link href="/profile" className="bg-blue-600 text-white px-4 py-2 rounded-md text-center hover:bg-blue-700 transition-colors">
-                    Update Profile Settings
-                  </Link>
-                  <Button 
-                    type="button" 
-                    variant="outline"
-                    className="mt-2"
-                    onClick={() => {
-                      refreshLocalUserSettings();
-                      const user = getLocalUser();
-                      if (user && user.venueManager) {
-                        setIsVenueManager(true);
-                        setError(null);
-                      } else {
-                        setError("Still not recognized as a venue manager. Try logging out and back in.");
-                      }
-                    }}
-                  >
-                    Refresh Settings
-                  </Button>
-                </div>
-              )}
-            </div>
+            <ErrorMessage 
+              error={error} 
+              isVenueManager={isVenueManager} 
+              onRefreshSettings={handleRefreshSettings}
+            />
           )}
           
+          {/* Success message with redirect */}
           {success && (
-            <div className="bg-green-50 text-green-600 p-4 rounded-md mb-6">
-              {success}
-            </div>
+            <SuccessMessage 
+              message={success}
+              venueId={createdVenueId}
+              redirectDelay={3000}
+            />
           )}
 
+          {/* Venue registration form */}
           {isVenueManager && (
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={onSubmitForm} className="space-y-6">
               {/* Basic Information Section */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">Basic Information</h3>
-                
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Venue Name *
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      required
-                      className="mt-1 w-full border rounded p-2"
-                      placeholder="Beach House Retreat"
-                    />
-                  </label>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Description *
-                    <textarea
-                      name="description"
-                      value={formData.description}
-                      onChange={handleChange}
-                      required
-                      rows={4}
-                      className="mt-1 w-full border rounded p-2"
-                      placeholder="Describe your venue in detail"
-                    />
-                  </label>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Price per Night (USD) *
-                      <input
-                        type="number"
-                        name="price"
-                        value={formData.price}
-                        onChange={handleChange}
-                        required
-                        min="1"
-                        className="mt-1 w-full border rounded p-2"
-                      />
-                    </label>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Maximum Guests *
-                      <input
-                        type="number"
-                        name="maxGuests"
-                        value={formData.maxGuests}
-                        onChange={handleChange}
-                        required
-                        min="1"
-                        max="100"
-                        className="mt-1 w-full border rounded p-2"
-                      />
-                    </label>
-                  </div>
-                </div>
-              </div>
+              <BasicInformation 
+                formData={formData}
+                handleChange={handleChange}
+                isSubmitting={isSubmitting}
+              />
               
               {/* Amenities Section */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">Amenities</h3>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <label className="flex items-center text-sm">
-                    <input
-                      type="checkbox"
-                      name="meta.wifi"
-                      checked={formData.meta?.wifi || false}
-                      onChange={handleCheckboxChange}
-                      className="mr-2"
-                    />
-                    WiFi Available
-                  </label>
-                  
-                  <label className="flex items-center text-sm">
-                    <input
-                      type="checkbox"
-                      name="meta.parking"
-                      checked={formData.meta?.parking || false}
-                      onChange={handleCheckboxChange}
-                      className="mr-2"
-                    />
-                    Parking Available
-                  </label>
-                  
-                  <label className="flex items-center text-sm">
-                    <input
-                      type="checkbox"
-                      name="meta.breakfast"
-                      checked={formData.meta?.breakfast || false}
-                      onChange={handleCheckboxChange}
-                      className="mr-2"
-                    />
-                    Breakfast Included
-                  </label>
-                  
-                  <label className="flex items-center text-sm">
-                    <input
-                      type="checkbox"
-                      name="meta.pets"
-                      checked={formData.meta?.pets || false}
-                      onChange={handleCheckboxChange}
-                      className="mr-2"
-                    />
-                    Pets Allowed
-                  </label>
-                </div>
-              </div>
+              <Amenities 
+                formData={formData}
+                handleCheckboxChange={handleCheckboxChange}
+                isSubmitting={isSubmitting}
+              />
               
               {/* Location Section */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">Location</h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Address
-                      <MapboxAddressInput
-                        value={formData.location?.address || ""}
-                        onChange={handleAddressSelect}
-                        placeholder="123 Beach Avenue"
-                        className="mt-1 w-full border rounded p-2"
-                        disabled={isSubmitting}
-                      />
-                    </label>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      City
-                      <input
-                        type="text"
-                        name="location.city"
-                        value={formData.location?.city || ""}
-                        onChange={handleChange}
-                        className="mt-1 w-full border rounded p-2"
-                        placeholder="Miami"
-                      />
-                    </label>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Country
-                      <input
-                        type="text"
-                        name="location.country"
-                        value={formData.location?.country || ""}
-                        onChange={handleChange}
-                        className="mt-1 w-full border rounded p-2"
-                        placeholder="USA"
-                      />
-                    </label>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Zip/Postal Code
-                      <input
-                        type="text"
-                        name="location.zip"
-                        value={formData.location?.zip || ""}
-                        onChange={handleChange}
-                        className="mt-1 w-full border rounded p-2"
-                        placeholder="33101"
-                      />
-                    </label>
-                  </div>
-                </div>
-              </div>
+              <Location 
+                formData={formData}
+                handleChange={handleChange}
+                handleAddressSelect={handleAddressSelect}
+                isSubmitting={isSubmitting}
+              />
               
               {/* Media Section */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">Media</h3>
-                <p className="text-sm text-gray-500">Add images of your venue (at least one recommended)</p>
-                
-                {formData.media?.map((item, index) => (
-                  <div key={index} className="space-y-2 border p-4 rounded-md">
-                    <div className="flex justify-between items-center">
-                      <h4 className="text-sm font-medium">Image {index + 1}</h4>
-                      {formData.media!.length > 1 && (
-                        <Button 
-                          type="button" 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => removeMediaField(index)}
-                          className="text-red-500 hover:text-red-700"
-                        >
-                          Remove
-                        </Button>
-                      )}
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium mb-1">
-                        Image URL
-                        <input
-                          type="url"
-                          value={item.url || ""}
-                          onChange={(e) => handleMediaChange(index, "url", e.target.value)}
-                          className="mt-1 w-full border rounded p-2"
-                          placeholder="https://example.com/image.jpg"
-                        />
-                      </label>
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium mb-1">
-                        Image Description
-                        <input
-                          type="text"
-                          value={item.alt || ""}
-                          onChange={(e) => handleMediaChange(index, "alt", e.target.value)}
-                          className="mt-1 w-full border rounded p-2"
-                          placeholder="Beautiful beach view"
-                        />
-                      </label>
-                    </div>
-                  </div>
-                ))}
-                
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={addMediaField}
-                  className="w-full"
-                >
-                  Add Another Image
-                </Button>
-              </div>
+              <Media 
+                formData={formData}
+                handleMediaChange={handleMediaChange}
+                addMediaField={addMediaField}
+                removeMediaField={removeMediaField}
+                isSubmitting={isSubmitting}
+              />
               
+              {/* Submit Button */}
               <div className="pt-4">
                 <Button 
                   type="submit" 

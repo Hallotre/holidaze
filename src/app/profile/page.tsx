@@ -2,9 +2,10 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { getLocalUser, updateVenueManagerStatus } from "@/lib/get-local-user";
+import { updateVenueManagerStatus } from "@/lib/get-local-user";
 import { profileService } from "@/lib/api";
 import { z } from "zod";
 
@@ -27,8 +28,16 @@ interface Venue {
   rating: number;
   created: string;
   updated: string;
-  meta: Record<string, any>;
-  location: Record<string, any>;
+  meta: Record<string, unknown>;
+  location: {
+    address: string;
+    city: string;
+    country: string;
+    continent: string;
+    zip: string;
+    lat?: number;
+    lng?: number;
+  };
   owner?: { name: string };
 }
 
@@ -38,8 +47,6 @@ const profileSchema = z.object({
   bannerUrl: z.string().url("Invalid banner URL").optional().or(z.literal("")),
   venueManager: z.boolean().optional(),
 });
-
-const API_KEY = process.env.NEXT_PUBLIC_NOROFF_API_KEY || "";
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -94,8 +101,8 @@ export default function ProfilePage() {
           localStorage.setItem("email", result.data.email);
         }
       }
-    } catch (err: any) {
-      setError(err?.message || "Failed to load profile");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to load profile");
     } finally {
       setIsLoading(false);
     }
@@ -206,8 +213,8 @@ export default function ProfilePage() {
       
       setEditSuccess("Profile updated successfully");
       await fetchProfile(); // Re-fetch profile after update
-    } catch (err: any) {
-      setEditError(err?.message || "Failed to update profile");
+    } catch (err: unknown) {
+      setEditError(err instanceof Error ? err.message : "Failed to update profile");
     } finally {
       setEditLoading(false);
     }
@@ -264,32 +271,36 @@ export default function ProfilePage() {
                 <div className="venues-container overflow-y-auto max-h-[600px] pr-2">
                   <div className="grid gap-4 md:grid-cols-2">
                     {venues.map((venue) => (
-                      <Card key={venue.id} className="border border-blue-100">
-                        <CardHeader>
-                          <CardTitle className="text-base font-semibold truncate">{venue.name}</CardTitle>
-                        </CardHeader>
-                        <CardContent className="flex flex-col gap-2">
-                          {venue.media?.[0]?.url && (
-                            <img
-                              src={venue.media[0].url}
-                              alt={venue.media[0].alt || venue.name}
-                              className="w-full h-32 object-cover rounded-md border"
-                              width={320}
-                              height={128}
-                              loading="lazy"
-                            />
-                          )}
-                          <div className="text-sm text-gray-700 line-clamp-2">{venue.description}</div>
-                          <div className="flex items-center gap-2 text-xs text-gray-500">
-                            <span>Price: ${venue.price}</span>
-                            <span>•</span>
-                            <span>Max Guests: {venue.maxGuests}</span>
-                          </div>
+                      <Card key={venue.id} className=" hover:border-pink-300 hover:shadow-sm hover:shadow-pink-100 transition-all">
+                        <Link href={`/venues/${venue.id}`} className="block">
+                          <CardHeader>
+                            <CardTitle className="text-base font-semibold truncate">{venue.name}</CardTitle>
+                          </CardHeader>
+                          <CardContent className="flex flex-col gap-2">
+                            {venue.media?.[0]?.url && (
+                              <Image
+                                src={venue.media[0].url}
+                                alt={venue.media[0].alt || venue.name}
+                                className="w-full h-32 object-cover rounded-md border"
+                                width={320}
+                                height={128}
+                                priority={false}
+                              />
+                            )}
+                            <div className="text-sm text-gray-700 line-clamp-2">{venue.description}</div>
+                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                              <span>Price: ${venue.price}</span>
+                              <span>•</span>
+                              <span>Max Guests: {venue.maxGuests}</span>
+                            </div>
+                          </CardContent>
+                        </Link>
+                        <div className="px-4 pb-4">
                           <div className="flex gap-2 mt-2">
                             <Button size="sm" variant="outline">Edit</Button>
                             <Button size="sm" variant="danger">Delete</Button>
                           </div>
-                        </CardContent>
+                        </div>
                       </Card>
                     ))}
                   </div>
@@ -310,24 +321,24 @@ export default function ProfilePage() {
               <CardContent className="flex flex-col items-center gap-4">
                 {/* Banner image if available */}
                 {profile.banner?.url && (
-                  <img
+                  <Image
                     src={profile.banner.url}
                     alt="Profile banner"
                     className="w-full h-32 object-cover rounded-md mb-4"
                     width={400}
                     height={128}
-                    loading="lazy"
+                    priority={false}
                   />
                 )}
                 {/* Avatar image if available */}
                 {profile.avatar?.url ? (
-                  <img
+                  <Image
                     src={profile.avatar.url}
                     alt="Profile avatar"
                     className="w-24 h-24 rounded-full object-cover border -mt-12 bg-white"
                     width={96}
                     height={96}
-                    loading="lazy"
+                    priority={false}
                     style={{ zIndex: 1 }}
                   />
                 ) : (

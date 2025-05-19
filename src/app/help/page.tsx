@@ -82,14 +82,14 @@ export default function HelpCenterPage() {
             <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
               <h3 className="text-lg font-medium mb-2">How do I make a booking?</h3>
               <p className="text-gray-700">
-                After finding a venue you like, check the availability for your desired dates. Click the "Book Now" button and follow the steps to complete your booking. You'll need to provide your payment details to confirm the reservation.
+                After finding a venue you like, check the availability for your desired dates. Click the &quot;Book Now&quot; button and follow the steps to complete your booking. You&apos;ll need to provide your payment details to confirm the reservation.
               </p>
             </div>
             
             <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
               <h3 className="text-lg font-medium mb-2">Can I book on behalf of someone else?</h3>
               <p className="text-gray-700">
-                Yes, you can book on behalf of someone else. However, please note that you will be responsible for the booking and will need to ensure that all guests follow the host's rules and Holidaze's Terms of Service.
+                Yes, you can book on behalf of someone else. However, please note that you will be responsible for the booking and will need to ensure that all guests follow the host&apos;s rules and Holidaze&apos;s Terms of Service.
               </p>
             </div>
           </div>
@@ -108,7 +108,7 @@ export default function HelpCenterPage() {
             <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
               <h3 className="text-lg font-medium mb-2">When will I be charged for my booking?</h3>
               <p className="text-gray-700">
-                For most bookings, you will be charged the full amount at the time of booking. For some longer stays or bookings made far in advance, you may have the option to pay in installments, depending on the host's settings.
+                For most bookings, you will be charged the full amount at the time of booking. For some longer stays or bookings made far in advance, you may have the option to pay in installments, depending on the host&apos;s settings.
               </p>
             </div>
             
@@ -134,7 +134,7 @@ export default function HelpCenterPage() {
             <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
               <h3 className="text-lg font-medium mb-2">How do I cancel a booking?</h3>
               <p className="text-gray-700">
-                To cancel a booking, go to your account, navigate to "My Trips," select the booking you wish to cancel, and click "Cancel Reservation." The refund amount will depend on the host's cancellation policy and how far in advance you cancel.
+                To cancel a booking, go to your account, navigate to &quot;My Trips,&quot; select the booking you wish to cancel, and click &quot;Cancel Reservation.&quot; The refund amount will depend on the host&apos;s cancellation policy and how far in advance you cancel.
               </p>
             </div>
             
@@ -153,28 +153,28 @@ export default function HelpCenterPage() {
             <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
               <h3 className="text-lg font-medium mb-2">How do I create a Holidaze account?</h3>
               <p className="text-gray-700">
-                To create an account, click on "Sign Up" in the top right corner of the homepage. Enter your email address, create a password, and provide your name. You can also sign up using your Google or Facebook account for faster registration.
+                To create an account, click on &quot;Sign Up&quot; in the top right corner of the homepage. Enter your email address, create a password, and provide your name. You can also sign up using your Google or Facebook account for faster registration.
               </p>
             </div>
             
             <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
               <h3 className="text-lg font-medium mb-2">How do I edit my profile information?</h3>
               <p className="text-gray-700">
-                Log in to your account and navigate to the "Profile" section. Here you can update your personal information, change your profile picture, add a bio, and modify your notification preferences. Don't forget to click "Save Changes" after making any updates.
+                Log in to your account and navigate to the &quot;Profile&quot; section. Here you can update your personal information, change your profile picture, add a bio, and modify your notification preferences. Don&apos;t forget to click &quot;Save Changes&quot; after making any updates.
               </p>
             </div>
             
             <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
               <h3 className="text-lg font-medium mb-2">I forgot my password. How do I reset it?</h3>
               <p className="text-gray-700">
-                On the login page, click "Forgot Password" below the login form. Enter the email address associated with your account, and we'll send you a password reset link. Follow the instructions in the email to create a new password.
+                On the login page, click &quot;Forgot Password&quot; below the login form. Enter the email address associated with your account, and we&apos;ll send you a password reset link. Follow the instructions in the email to create a new password.
               </p>
             </div>
             
             <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
               <h3 className="text-lg font-medium mb-2">How do I view my booking history?</h3>
               <p className="text-gray-700">
-                After logging in, go to your Profile and select "My Trips." This page displays all your current, upcoming, and past bookings. Click on any booking to view its details, including check-in instructions and host contact information.
+                After logging in, go to your Profile and select &quot;My Trips.&quot; This page displays all your current, upcoming, and past bookings. Click on any booking to view its details, including check-in instructions and host contact information.
               </p>
             </div>
           </div>
@@ -186,7 +186,7 @@ export default function HelpCenterPage() {
             <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
               <h3 className="text-lg font-medium mb-2">How do I list my property on Holidaze?</h3>
               <p className="text-gray-700">
-                To become a host, register for an account and ensure the "Venue Manager" option is enabled in your profile. Then, navigate to your dashboard and click "Create New Listing." Follow the steps to add details, photos, pricing, and availability for your venue.
+                To become a host, register for an account and ensure the &quot;Venue Manager&quot; option is enabled in your profile. Then, navigate to your dashboard and click &quot;Create New Listing.&quot; Follow the steps to add details, photos, pricing, and availability for your venue.
               </p>
             </div>
             
@@ -219,14 +219,14 @@ export default function HelpCenterPage() {
             <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
               <h3 className="text-lg font-medium mb-2">Can I set different prices for different dates?</h3>
               <p className="text-gray-700">
-                Yes, you can set custom pricing for weekends, holidays, or specific seasons. In your listing dashboard, go to "Calendar & Pricing" and select the dates you want to customize. This allows you to charge premium rates during high-demand periods or offer discounts during slower times.
+                Yes, you can set custom pricing for weekends, holidays, or specific seasons. In your listing dashboard, go to &quot;Calendar &amp; Pricing&quot; and select the dates you want to customize. This allows you to charge premium rates during high-demand periods or offer discounts during slower times.
               </p>
             </div>
             
             <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
               <h3 className="text-lg font-medium mb-2">How do I manage venue availability?</h3>
               <p className="text-gray-700">
-                Use the calendar in your host dashboard to mark dates as available or unavailable. You can block off dates when you need the space for personal use, maintenance, or when you're unavailable to host. Regular updates to your calendar prevent double-bookings and disappointment.
+                Use the calendar in your host dashboard to mark dates as available or unavailable. You can block off dates when you need the space for personal use, maintenance, or when you&apos;re unavailable to host. Regular updates to your calendar prevent double-bookings and disappointment.
               </p>
             </div>
             
@@ -245,7 +245,7 @@ export default function HelpCenterPage() {
             <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
               <h3 className="text-lg font-medium mb-2">How do I accept or decline booking requests?</h3>
               <p className="text-gray-700">
-                When you receive a booking request, you'll get an email notification and an alert in your host dashboard. Review the request details, check the guest's profile and reviews, and then click "Accept" or "Decline" within 24 hours. For instant bookings, reservations are automatically accepted if your calendar shows availability.
+                When you receive a booking request, you&apos;ll get an email notification and an alert in your host dashboard. Review the request details, check the guest&apos;s profile and reviews, and then click &quot;Accept&quot; or &quot;Decline&quot; within 24 hours. For instant bookings, reservations are automatically accepted if your calendar shows availability.
               </p>
             </div>
             
@@ -259,7 +259,7 @@ export default function HelpCenterPage() {
             <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
               <h3 className="text-lg font-medium mb-2">What if I need to cancel a booking?</h3>
               <p className="text-gray-700">
-                Host cancellations should be avoided whenever possible as they disrupt guests' travel plans and may affect your listing's ranking. However, if you must cancel, go to the booking in your dashboard and select "Cancel reservation." Provide a reason for the cancellation. Note that cancellations may incur penalties and affect your host status.
+                Host cancellations should be avoided whenever possible as they disrupt guests&apos; travel plans and may affect your listing&apos;s ranking. However, if you must cancel, go to the booking in your dashboard and select &quot;Cancel reservation.&quot; Provide a reason for the cancellation. Note that cancellations may incur penalties and affect your host status.
               </p>
             </div>
             
@@ -285,7 +285,7 @@ export default function HelpCenterPage() {
             <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
               <h3 className="text-lg font-medium mb-2">What payout methods are available?</h3>
               <p className="text-gray-700">
-                Holidaze supports several payout methods, including direct deposit to your bank account, PayPal, and in some regions, Payoneer. To set up or change your payout method, go to the "Account" section in your host dashboard and select "Payout preferences." Different methods may have different processing times.
+                Holidaze supports several payout methods, including direct deposit to your bank account, PayPal, and in some regions, Payoneer. To set up or change your payout method, go to the &quot;Account&quot; section in your host dashboard and select &quot;Payout preferences.&quot; Different methods may have different processing times.
               </p>
             </div>
             
@@ -306,7 +306,7 @@ export default function HelpCenterPage() {
             <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
               <h3 className="text-lg font-medium mb-2">What about taxes on my hosting income?</h3>
               <p className="text-gray-700">
-                As a host, you're responsible for reporting income earned from Holidaze to the relevant tax authorities. In some jurisdictions, we may be required to collect and remit certain taxes on your behalf or provide income information to tax authorities. Consult with a tax professional for advice specific to your situation.
+                As a host, you&apos;re responsible for reporting income earned from Holidaze to the relevant tax authorities. In some jurisdictions, we may be required to collect and remit certain taxes on your behalf or provide income information to tax authorities. Consult with a tax professional for advice specific to your situation.
               </p>
             </div>
           </div>
@@ -315,7 +315,7 @@ export default function HelpCenterPage() {
 
       {/* Contact Support Section */}
       <div className="mt-16 p-8 bg-gradient-to-r from-pink-50 to-blue-50 rounded-lg border border-pink-100">
-        <h2 className="text-2xl font-semibold text-center mb-6">Can't find what you're looking for?</h2>
+        <h2 className="text-2xl font-semibold text-center mb-6">Can&apos;t find what you&apos;re looking for?</h2>
         <p className="text-center text-gray-700 mb-6">
           Our support team is here to help with any questions or issues you may have.
         </p>

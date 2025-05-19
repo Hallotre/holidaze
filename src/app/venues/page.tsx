@@ -6,8 +6,6 @@ import { venueService } from "@/lib/api";
 import { Venue } from "@/types/venue";
 import VenueCard from "@/components/venues/VenueCard";
 import { Loader2 } from "lucide-react";
-import Link from "next/link";
-import { FilterSidebar, FilterValues } from "@/components/venues/FilterSidebar";
 import { QuickFilters } from "@/components/venues/QuickFilters";
 
 export default function VenuesPage() {
@@ -32,79 +30,69 @@ export default function VenuesPage() {
       setLoading(true);
       setError(null);
       try {
-        const sort = searchParams.get("sort") || undefined; // Ensure undefined if null
-        const sortOrder = searchParams.get("sortOrder") as "asc" | "desc" | undefined;
+        const sort = searchParams.get("sort") || "created"; // Default to sorting by created date
+        const sortOrder = searchParams.get("sortOrder") as "asc" | "desc" | undefined || "desc"; // Default to descending order
         const query = searchParams.get("q");
-
-        let venuesFromApi: Venue[] = [];
-
-        if (query) {
-          // searchVenues doesn't support sorting or pagination in the current api.ts
-          // It's assumed to return all venues matching the query.
-          const response = await venueService.searchVenues(query);
-          venuesFromApi = response.data; // Assuming response.data is Venue[]
-        } else {
-          // Fetch venues if no search query. API-side sorting is applied here.
-          // Changed limit from 1000 to 100 to avoid 400 error.
-          const response = await venueService.getVenues({ 
-            sort, 
-            sortOrder,
-            limit: 100, // Fetch up to 100 venues for client-side filtering
-            // page: 1 // Defaults to 1 in getVenues if not specified
-          });
-          venuesFromApi = response.data;
-        }
-
-        // Apply all client-side filters
+        
+        // Get all filters up front for better organization
         const country = searchParams.get("country");
         const maxPriceStr = searchParams.get("maxPrice");
         const wifi = searchParams.get("wifi") === "true";
         const parking = searchParams.get("parking") === "true";
         const breakfast = searchParams.get("breakfast") === "true";
         const pets = searchParams.get("pets") === "true";
-
-        let clientFilteredList = venuesFromApi;
-
-        if (country) {
-          clientFilteredList = clientFilteredList.filter((venue: Venue) => 
-            venue.location?.country?.toLowerCase() === country.toLowerCase()
-          );
-        }
         
-        if (maxPriceStr) {
-          const maxPriceNum = Number(maxPriceStr);
-          if (!isNaN(maxPriceNum)) {
-            clientFilteredList = clientFilteredList.filter((venue: Venue) => 
-              venue.price <= maxPriceNum
-            );
+        // Track if any filter is active
+        const hasActiveFilters = !!(country || maxPriceStr || wifi || parking || breakfast || pets);
+
+        let venuesFromApi: Venue[] = [];
+        let totalCount = 0;
+
+        if (query) {
+          // searchVenues doesn't support sorting or pagination in the current api.ts
+          // It's assumed to return all venues matching the query.
+          const response = await venueService.searchVenues(query);
+          venuesFromApi = response.data; // Assuming response.data is Venue[]
+          totalCount = venuesFromApi.length;
+          
+          // Apply any additional filters when search is active
+          if (hasActiveFilters) {
+            venuesFromApi = applyClientFilters(venuesFromApi, {
+              country, maxPriceStr, wifi, parking, breakfast, pets
+            });
+            totalCount = venuesFromApi.length;
+          }
+        } else {
+          // For API-supported filters, we'll use the server-side filtering
+          // For this example, we're using pagination directly from the API
+          const response = await venueService.getVenues({ 
+            sort, 
+            sortOrder,
+            limit, // Use the page limit for server-side pagination
+            page: currentPage // Use current page for pagination
+          });
+          
+          venuesFromApi = response.data;
+          
+          // Set total count from API metadata for pagination
+          if (response.meta && typeof response.meta.totalCount === 'number') {
+            totalCount = response.meta.totalCount;
+          } else {
+            totalCount = venuesFromApi.length;
+          }
+          
+          // Apply any client-side filters that the API doesn't support
+          if (hasActiveFilters) {
+            venuesFromApi = applyClientFilters(venuesFromApi, {
+              country, maxPriceStr, wifi, parking, breakfast, pets
+            });
+            // Client-side filtering adjusts the total count
+            totalCount = hasActiveFilters ? venuesFromApi.length : totalCount;
           }
         }
 
-        if (wifi) {
-          clientFilteredList = clientFilteredList.filter((venue: Venue) => venue.meta?.wifi);
-        }
-        if (parking) {
-          clientFilteredList = clientFilteredList.filter((venue: Venue) => venue.meta?.parking);
-        }
-        if (breakfast) {
-          clientFilteredList = clientFilteredList.filter((venue: Venue) => venue.meta?.breakfast);
-        }
-        if (pets) {
-          clientFilteredList = clientFilteredList.filter((venue: Venue) => venue.meta?.pets);
-        }
-        
-        // If there was a search query and client-side sorting is desired (as API search doesn't sort)
-        // This is an example if sorting needs to be re-applied client side after search
-        // For now, we rely on API sort for non-search, and no sort for search
-        // if (query && sort) { ... client side sort logic ... }
-
-        setTotal(clientFilteredList.length); // Total count after all filters
-
-        // Client-side pagination
-        const startIndex = (currentPage - 1) * limit;
-        const endIndex = startIndex + limit;
-        setVenues(clientFilteredList.slice(startIndex, endIndex));
-        
+        setTotal(totalCount);
+        setVenues(venuesFromApi);
         setError(null);
       } catch (err) {
         console.error("Error loading or filtering venues:", err);
@@ -117,6 +105,49 @@ export default function VenuesPage() {
     }
     loadAndFilterVenues();
   }, [searchParams, currentPage, limit]);
+
+  // Helper function to apply client-side filters
+  function applyClientFilters(venues: Venue[], filters: {
+    country?: string | null;
+    maxPriceStr?: string | null;
+    wifi?: boolean;
+    parking?: boolean;
+    breakfast?: boolean;
+    pets?: boolean;
+  }) {
+    let filtered = [...venues];
+    
+    if (filters.country) {
+      filtered = filtered.filter((venue) => 
+        venue.location?.country?.toLowerCase() === filters.country?.toLowerCase()
+      );
+    }
+    
+    if (filters.maxPriceStr) {
+      const maxPrice = Number(filters.maxPriceStr);
+      if (!isNaN(maxPrice)) {
+        filtered = filtered.filter((venue) => venue.price <= maxPrice);
+      }
+    }
+    
+    if (filters.wifi) {
+      filtered = filtered.filter((venue) => venue.meta?.wifi);
+    }
+    
+    if (filters.parking) {
+      filtered = filtered.filter((venue) => venue.meta?.parking);
+    }
+    
+    if (filters.breakfast) {
+      filtered = filtered.filter((venue) => venue.meta?.breakfast);
+    }
+    
+    if (filters.pets) {
+      filtered = filtered.filter((venue) => venue.meta?.pets);
+    }
+    
+    return filtered;
+  }
 
   // Pagination controls
   const totalPages = total ? Math.ceil(total / limit) : null;
@@ -175,6 +206,45 @@ export default function VenuesPage() {
           {searchParams.get("sort") === "rating" && searchParams.get("sortOrder") === "desc" && (
             <p className="text-lg mb-6">
               Top-rated venues
+            </p>
+          )}
+          
+          {/* Filter summary - Show which filters are active */}
+          {(searchParams.get("wifi") === "true" || 
+            searchParams.get("parking") === "true" || 
+            searchParams.get("breakfast") === "true" || 
+            searchParams.get("pets") === "true") && (
+            <div className="flex flex-wrap gap-2 mb-6">
+              <span className="text-sm font-medium">Active filters:</span>
+              {searchParams.get("wifi") === "true" && (
+                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                  WiFi
+                </span>
+              )}
+              {searchParams.get("parking") === "true" && (
+                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                  Parking
+                </span>
+              )}
+              {searchParams.get("breakfast") === "true" && (
+                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                  Breakfast
+                </span>
+              )}
+              {searchParams.get("pets") === "true" && (
+                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                  Pets allowed
+                </span>
+              )}
+            </div>
+          )}
+          
+          {/* Latest venues indicator - show only when no specific sort is in URL params */}
+          {(!searchParams.get("sort") || searchParams.get("sort") === "created") && 
+           (!searchParams.get("sortOrder") || searchParams.get("sortOrder") === "desc") && 
+           !searchParams.get("q") && !searchParams.get("country") && !searchParams.get("maxPrice") && (
+            <p className="text-lg mb-6">
+              Latest venues
             </p>
           )}
           

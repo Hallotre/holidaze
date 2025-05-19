@@ -17,7 +17,7 @@ export default function PrivacyPolicyPage() {
         <section className="mb-8">
           <h2 className="text-2xl font-semibold text-pink-600 mb-4">1. Introduction</h2>
           <p>
-            Holidaze ("we," "us," or "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your personal information when you use our website, mobile application, and related services (collectively, the "Platform"). By accessing or using Holidaze, you agree to the terms of this Privacy Policy.
+            Holidaze (&quot;we,&quot; &quot;us,&quot; or &quot;our&quot;) is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your personal information when you use our website, mobile application, and related services (collectively, the &quot;Platform&quot;). By accessing or using Holidaze, you agree to the terms of this Privacy Policy.
           </p>
         </section>
 
@@ -119,7 +119,7 @@ export default function PrivacyPolicyPage() {
         </section>
 
         <section className="mb-8">
-          <h2 className="text-2xl font-semibold text-pink-600 mb-4">9. Children's Privacy</h2>
+          <h2 className="text-2xl font-semibold text-pink-600 mb-4">9. Children&apos;s Privacy</h2>
           <p>
             Holidaze is not intended for children under 18. We do not knowingly collect personal information from children. If you believe a child has provided us with personal information, please contact us so we can delete it.
           </p>

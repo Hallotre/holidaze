@@ -12,7 +12,6 @@ export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [username, setUsername] = useState("");
   const router = useRouter();
   const pathname = usePathname();
 
@@ -20,9 +19,7 @@ export default function Header() {
   useEffect(() => {
     if (typeof window !== "undefined") {
       const token = localStorage.getItem("accessToken");
-      const user = localStorage.getItem("username");
       setIsLoggedIn(!!token);
-      setUsername(user || "");
     }
   }, [pathname]);
 
@@ -39,7 +36,7 @@ export default function Header() {
     }
     try {
       router.push(`/venues/search?q=${encodeURIComponent(searchQuery.trim())}`);
-    } catch (error) {
+    } catch {
       toast("Search failed.", { description: "An error occurred while searching. Please try again." });
     }
   };

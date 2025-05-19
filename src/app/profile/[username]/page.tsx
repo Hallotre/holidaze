@@ -28,8 +28,15 @@ interface Venue {
   rating: number;
   created: string;
   updated: string;
-  meta: Record<string, any>;
-  location: Record<string, any>;
+  meta: Record<string, unknown>;
+  location: {
+    address: string;
+    city: string;
+    country: string;
+    zip: string;
+    lat?: number;
+    lng?: number;
+  };
   owner?: { name: string };
 }
 
@@ -66,8 +73,9 @@ export default function PublicProfilePage() {
       try {
         const result = await profileService.getProfileByName(username);
         setProfile(result.data);
-      } catch (err: any) {
-        setError(err?.message || "Failed to load profile");
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : "Failed to load profile";
+        setError(errorMessage);
       } finally {
         setIsLoading(false);
       }
@@ -113,7 +121,7 @@ export default function PublicProfilePage() {
         <div className="w-full md:w-2/3 order-2 md:order-1">
           {/* Card component wrapper removed, header styling adjusted */}
           <div className="flex flex-row items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold">{profile.name}'s Venues</h2>
+            <h2 className="text-xl font-semibold">{profile.name}&apos;s Venues</h2>
           </div>
           {/* CardContent wrapper removed */}
           {venuesLoading ? (

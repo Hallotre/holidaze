@@ -48,7 +48,7 @@ export function refreshLocalUserSettings() {
       const parsedValue = JSON.parse(venueManagerValue);
       // Ensure it's stored as a proper boolean
       localStorage.setItem("venueManager", JSON.stringify(!!parsedValue));
-    } catch (e) {
+    } catch {
       // If parsing fails, set a default value
       localStorage.setItem("venueManager", "false");
     }

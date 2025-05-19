@@ -1,7 +1,6 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useState, useEffect } from "react";
 
 const popularCountries = [
   "Norway",
@@ -25,7 +24,6 @@ interface QuickFilterProps {
 export function QuickFilters({ onFilterApplied }: QuickFilterProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [activeFilter, setActiveFilter] = useState<string | null>(null); // This state seems unused and can be removed if not used by other logic.
 
   const toggleQueryParam = (paramName: string, paramValue: string) => {
     const params = new URLSearchParams(Array.from(searchParams.entries()));
@@ -94,7 +92,6 @@ export function QuickFilters({ onFilterApplied }: QuickFilterProps) {
 
   const clearFilters = () => {
     router.push("/venues");
-    setActiveFilter(null);
     if (onFilterApplied) onFilterApplied();
   };
 

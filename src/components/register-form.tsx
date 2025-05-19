@@ -52,8 +52,9 @@ export function RegisterForm({
         return;
       }
       router.push("/login");
-    } catch {
+    } catch (error: unknown) {
       setError("Network error");
+      console.error("Registration error:", error);
     } finally {
       setIsLoading(false);
     }
@@ -82,7 +83,7 @@ export function RegisterForm({
                   maxLength={30}
                   pattern="^\w+$"
                   value={name}
-                  onChange={e => setName(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
                   disabled={isLoading}
                 />
               </div>
@@ -95,7 +96,7 @@ export function RegisterForm({
                   required
                   pattern="^[\\w.-]+@stud\\.noroff\\.no$"
                   value={email}
-                  onChange={e => setEmail(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
                   disabled={isLoading}
                 />
               </div>
@@ -107,7 +108,7 @@ export function RegisterForm({
                   required
                   minLength={8}
                   value={password}
-                  onChange={e => setPassword(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
                   disabled={isLoading}
                 />
               </div>
@@ -118,7 +119,7 @@ export function RegisterForm({
                   type="text"
                   maxLength={160}
                   value={bio}
-                  onChange={e => setBio(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBio(e.target.value)}
                   disabled={isLoading}
                 />
               </div>
@@ -127,7 +128,7 @@ export function RegisterForm({
                   id="venueManager"
                   type="checkbox"
                   checked={venueManager}
-                  onChange={e => setVenueManager(e.target.checked)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setVenueManager(e.target.checked)}
                   disabled={isLoading}
                 />
                 <Label htmlFor="venueManager">Register as Venue Manager</Label>

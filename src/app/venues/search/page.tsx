@@ -42,7 +42,7 @@ export default function VenueSearchPage() {
       <h1 className="text-3xl font-bold mb-2">Search Venues</h1>
       {query && (
         <p className="text-lg mb-6">
-          Search results for <span className="font-semibold">"{query}"</span>
+          Search results for <span className="font-semibold">&quot;{query}&quot;</span>
         </p>
       )}
       {loading ? (

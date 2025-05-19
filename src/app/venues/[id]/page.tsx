@@ -2,16 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import Image from "next/image";
 import Link from "next/link";
 import { venueService } from "@/lib/api";
 import { Venue } from "@/types/venue";
 import {
   MapPin,
-  Wifi,
-  Car,
-  Utensils,
-  PawPrint,
   Star,
   ArrowLeft,
 } from "lucide-react";
