@@ -22,7 +22,10 @@ const buttonStyles = {
   outline: "bg-white text-pink-600 hover:bg-pink-50 border-2 border-pink-600",
   
   // Text-only buttons
-  link: "bg-transparent text-pink-600 hover:underline hover:bg-transparent p-0 border-none"
+  link: "bg-transparent text-pink-600 hover:underline hover:bg-transparent p-0 border-none",
+  
+  // Ghost variant (transparent but shows hover effect)
+  ghost: "bg-transparent text-pink-600 hover:bg-pink-50 border-none"
 }
 
 // Simple size variations
@@ -36,6 +39,16 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: keyof typeof buttonStyles
   size?: keyof typeof buttonSizes
 }
+
+const buttonVariants = ({ 
+  variant = "primary", 
+  size = "md" 
+}: {
+  variant?: keyof typeof buttonStyles;
+  size?: keyof typeof buttonSizes;
+} = {}) => {
+  return cn(baseButtonStyles, buttonStyles[variant], buttonSizes[size]);
+};
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = "primary", size = "md", ...props }, ref) => {
@@ -55,4 +68,4 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 )
 Button.displayName = "Button"
 
-export { Button }
+export { Button, buttonVariants }

@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Image from "next/image";
 
-export default function Home() {
+export default function HomePage() {
   // Popular destinations with Unsplash images
   const destinations = [
     {

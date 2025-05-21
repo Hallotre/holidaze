@@ -191,9 +191,6 @@ export function MapboxAddressInput({
           autoComplete="address-line1"
         />
       </MapboxComponent>
-      <div className="text-xs text-green-600 mt-1">
-        Address autocomplete enabled
-      </div>
     </div>
   );
 } 

@@ -55,7 +55,7 @@ export default function Footer() {
               <ul className="space-y-2">
                 <li>
                   <Link
-                    href="/dashboard/venues"
+                    href="/profile/venues-dashboard"
                     className="text-gray-600 hover:text-pink-600 transition-colors"
                   >
                     Manage Venues
@@ -63,7 +63,7 @@ export default function Footer() {
                 </li>
                 <li>
                   <Link
-                    href="/dashboard/bookings"
+                    href="/profile/dashboard"
                     className="text-gray-600 hover:text-pink-600 transition-colors"
                   >
                     Manage Bookings
@@ -71,7 +71,7 @@ export default function Footer() {
                 </li>
                 <li>
                   <Link
-                    href="/dashboard/create"
+                    href="/venues/register"
                     className="text-gray-600 hover:text-pink-600 transition-colors"
                   >
                     List Your Venue

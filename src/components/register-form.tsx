@@ -73,11 +73,11 @@ export function RegisterForm({
           <form onSubmit={handleSubmit}>
             <div className="flex flex-col gap-6">
               <div className="grid gap-3">
-                <Label htmlFor="name">Name</Label>
+                <Label htmlFor="name">Username</Label>
                 <Input
                   id="name"
                   type="text"
-                  placeholder="username"
+                  placeholder="Username"
                   required
                   minLength={3}
                   maxLength={30}
@@ -104,6 +104,7 @@ export function RegisterForm({
                 <Label htmlFor="password">Password</Label>
                 <Input
                   id="password"
+                  placeholder="Password"
                   type="password"
                   required
                   minLength={8}

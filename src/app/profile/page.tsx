@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { updateVenueManagerStatus } from "@/lib/get-local-user";
 import { profileService } from "@/lib/api";
 import { z } from "zod";
+import { BookingsList } from "@/components/bookings/BookingsList";
+import { CheckCircle2 } from "lucide-react";
 
 interface UserProfile {
   name: string;
@@ -16,29 +18,6 @@ interface UserProfile {
   avatar?: { url: string; alt: string };
   banner?: { url: string; alt: string };
   venueManager?: boolean;
-}
-
-interface Venue {
-  id: string;
-  name: string;
-  description: string;
-  media: { url: string; alt: string }[];
-  price: number;
-  maxGuests: number;
-  rating: number;
-  created: string;
-  updated: string;
-  meta: Record<string, unknown>;
-  location: {
-    address: string;
-    city: string;
-    country: string;
-    continent: string;
-    zip: string;
-    lat?: number;
-    lng?: number;
-  };
-  owner?: { name: string };
 }
 
 const profileSchema = z.object({
@@ -52,9 +31,13 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [venues, setVenues] = useState<Venue[]>([]);
-  const [venuesLoading, setVenuesLoading] = useState(false);
-  const [venuesError, setVenuesError] = useState<string | null>(null);
+  const [showSettings, setShowSettings] = useState(false);
+  const [bookingSuccess, setBookingSuccess] = useState<{
+    message: string;
+    id: string;
+    venueId: string;
+    venueName: string;
+  } | null>(null);
   const router = useRouter();
 
   // Profile edit state
@@ -67,9 +50,6 @@ export default function ProfilePage() {
   const [editLoading, setEditLoading] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
   const [editSuccess, setEditSuccess] = useState<string | null>(null);
-
-  // Add state for settings visibility
-  const [showSettings, setShowSettings] = useState(false);
 
   // Fetch profile from API
   async function fetchProfile() {
@@ -109,6 +89,18 @@ export default function ProfilePage() {
   }
 
   useEffect(() => {
+    // Check for booking success message in session storage
+    const storedSuccessMsg = sessionStorage.getItem("bookingSuccess");
+    if (storedSuccessMsg) {
+      try {
+        setBookingSuccess(JSON.parse(storedSuccessMsg));
+        // Clear the message to prevent showing it again on refresh
+        sessionStorage.removeItem("bookingSuccess");
+      } catch (err) {
+        console.error("Error parsing booking success:", err);
+      }
+    }
+
     fetchProfile();
     // eslint-disable-next-line
   }, [router]);
@@ -123,59 +115,6 @@ export default function ProfilePage() {
       venueManager: profile.venueManager || false,
     });
   }, [profile]);
-
-  // Fetch user's venues after profile is loaded
-  useEffect(() => {
-    if (!profile) return;
-    setVenuesLoading(true);
-    setVenuesError(null);
-
-    // Using profileService instead of fetch to properly include auth token
-    profileService.getProfileVenues(profile.name)
-      .then((result) => {
-        setVenues(result.data);
-      })
-      .catch((err) => {
-        setVenuesError(err?.message || "Failed to load venues");
-      })
-      .finally(() => setVenuesLoading(false));
-  }, [profile]);
-
-  // Add navigation effect for venue scrolling
-  useEffect(() => {
-    // Only run on the client side
-    if (typeof window !== 'undefined' && venues.length > 4) {
-      // Handle venue navigation buttons
-      const handleVenueNavigation = () => {
-        const container = document.querySelector('.venues-container');
-        if (!container) return;
-        
-        const navButtons = document.querySelectorAll('.venue-nav');
-        navButtons.forEach(button => {
-          button.addEventListener('click', (e) => {
-            const direction = (e.currentTarget as HTMLElement).dataset.direction;
-            const scrollAmount = container.clientHeight;
-            
-            if (direction === 'next') {
-              container.scrollBy({ top: scrollAmount, behavior: 'smooth' });
-            } else {
-              container.scrollBy({ top: -scrollAmount, behavior: 'smooth' });
-            }
-          });
-        });
-      };
-      
-      handleVenueNavigation();
-      
-      // Cleanup
-      return () => {
-        const navButtons = document.querySelectorAll('.venue-nav');
-        navButtons.forEach(button => {
-          button.removeEventListener('click', () => {});
-        });
-      };
-    }
-  }, [venues.length]);
 
   async function handleProfileUpdate(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -226,86 +165,46 @@ export default function ProfilePage() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
+      {/* Booking Success Message */}
+      {bookingSuccess && (
+        <div className="bg-green-50 border border-green-100 text-green-700 px-6 py-4 rounded-lg mb-6 animate-in fade-in">
+          <div className="flex items-center">
+            <CheckCircle2 className="h-5 w-5 mr-3 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="font-medium">{bookingSuccess.message}</p>
+              <p className="text-sm mt-1">
+                You&apos;ve successfully booked <span className="font-medium">{bookingSuccess.venueName}</span>. 
+                View it in your bookings below.
+              </p>
+            </div>
+            <Button
+              variant="link"
+              className="text-green-700"
+              onClick={() => setBookingSuccess(null)}
+            >
+              Dismiss
+            </Button>
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-col md:flex-row gap-6">
         {/* VENUES SECTION - Left side on larger screens */}
         <div className="w-full md:w-3/5 order-2 md:order-1">
+          {/* VENUES SECTION REMOVED */}
+          
+          {/* BOOKINGS SECTION */}
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Your Venues</CardTitle>
-              
-              {profile.venueManager && (
-                <Link href="/venues/register">
-                  <Button variant="primary" size="sm" className="ml-auto mr-4">
-                    + Add New Venue
-                  </Button>
-                </Link>
-              )}
-              
-              {/* Venue Navigation - Only show when there are multiple venues */}
-              {venues.length > 4 && (
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" className="venue-nav" data-direction="prev">
-                    Previous
-                  </Button>
-                  <Button variant="outline" size="sm" className="venue-nav" data-direction="next">
-                    Next
-                  </Button>
-                </div>
-              )}
+            <CardHeader>
+              <CardTitle>Your Bookings</CardTitle>
             </CardHeader>
             <CardContent>
-              {venuesLoading ? (
-                <div className="text-center py-6">Loading venues...</div>
-              ) : venuesError ? (
-                <div className="text-center text-red-600 py-6">{venuesError}</div>
-              ) : venues.length === 0 ? (
-                <div className="text-center flex flex-col items-center py-6">
-                  <p className="text-gray-500 mb-4">You have not created any venues yet.</p>
-                  {profile.venueManager && (
-                    <Link href="/venues/register">
-                      <Button variant="primary">Register Your First Venue</Button>
-                    </Link>
-                  )}
-                </div>
-              ) : (
-                <div className="venues-container overflow-y-auto max-h-[600px] pr-2">
-                  <div className="grid gap-4 md:grid-cols-2">
-                    {venues.map((venue) => (
-                      <Card key={venue.id} className=" hover:border-pink-300 hover:shadow-sm hover:shadow-pink-100 transition-all">
-                        <Link href={`/venues/${venue.id}`} className="block">
-                          <CardHeader>
-                            <CardTitle className="text-base font-semibold truncate">{venue.name}</CardTitle>
-                          </CardHeader>
-                          <CardContent className="flex flex-col gap-2">
-                            {venue.media?.[0]?.url && (
-                              <Image
-                                src={venue.media[0].url}
-                                alt={venue.media[0].alt || venue.name}
-                                className="w-full h-32 object-cover rounded-md border"
-                                width={320}
-                                height={128}
-                                priority={false}
-                              />
-                            )}
-                            <div className="text-sm text-gray-700 line-clamp-2">{venue.description}</div>
-                            <div className="flex items-center gap-2 text-xs text-gray-500">
-                              <span>Price: ${venue.price}</span>
-                              <span>•</span>
-                              <span>Max Guests: {venue.maxGuests}</span>
-                            </div>
-                          </CardContent>
-                        </Link>
-                        <div className="px-4 pb-4">
-                          <div className="flex gap-2 mt-2">
-                            <Button size="sm" variant="outline">Edit</Button>
-                            <Button size="sm" variant="danger">Delete</Button>
-                          </div>
-                        </div>
-                      </Card>
-                    ))}
-                  </div>
-                </div>
-              )}
+              {profile && <BookingsList username={profile.name} />}
+              <div className="text-center mt-6">
+                <Link href="/profile/dashboard">
+                  <Button variant="outline" size="sm">View Detailed Booking Dashboard</Button>
+                </Link>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -380,6 +279,20 @@ export default function ProfilePage() {
                     </svg>
                   </Button>
                   
+                  <Link href="/profile/dashboard" className="w-full">
+                    <Button className="w-full" variant="primary">
+                      View Booking Dashboard
+                    </Button>
+                  </Link>
+                  
+                  {profile.venueManager && (
+                    <Link href="/profile/venues-dashboard" className="w-full">
+                      <Button className="w-full" variant="outline">
+                        Manage Your Venues
+                      </Button>
+                    </Link>
+                  )}
+                  
                   <Button 
                     className="w-full" 
                     variant="secondary" 
@@ -407,8 +320,9 @@ export default function ProfilePage() {
                 </CardHeader>
                 <CardContent>
                   <form className="flex flex-col gap-4" onSubmit={handleProfileUpdate}>
-                    <label className="text-sm font-medium">Bio
+                    <label htmlFor="bio" className="text-sm font-medium">Bio
                       <textarea
+                        id="bio"
                         className="mt-1 w-full border rounded p-2"
                         maxLength={160}
                         value={editState.bio}
@@ -416,8 +330,9 @@ export default function ProfilePage() {
                         placeholder="Tell us about yourself..."
                       />
                     </label>
-                    <label className="text-sm font-medium">Avatar URL
+                    <label htmlFor="avatarUrl" className="text-sm font-medium">Avatar URL
                       <input
+                        id="avatarUrl"
                         type="url"
                         className="mt-1 w-full border rounded p-2"
                         value={editState.avatarUrl}
@@ -425,8 +340,9 @@ export default function ProfilePage() {
                         placeholder="https://..."
                       />
                     </label>
-                    <label className="text-sm font-medium">Banner URL
+                    <label htmlFor="bannerUrl" className="text-sm font-medium">Banner URL
                       <input
+                        id="bannerUrl"
                         type="url"
                         className="mt-1 w-full border rounded p-2"
                         value={editState.bannerUrl}
@@ -434,8 +350,9 @@ export default function ProfilePage() {
                         placeholder="https://..."
                       />
                     </label>
-                    <label className="flex items-center gap-2">
+                    <label htmlFor="venueManager" className="flex items-center gap-2">
                       <input
+                        id="venueManager"
                         type="checkbox"
                         checked={editState.venueManager}
                         onChange={e => {

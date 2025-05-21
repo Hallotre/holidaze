@@ -61,13 +61,15 @@ export default function VenueDetailPage() {
   return (
     <div className="container mx-auto py-8 px-4">
       {/* Back button */}
-      <Link
-        href="/venues"
-        className="flex items-center text-primary mb-6 hover:underline"
-      >
-        <ArrowLeft size={18} className="mr-2" />
-        Back to all venues
-      </Link>
+      <div className="w-fit">
+        <Link
+          href="/venues"
+          className="flex items-center text-primary mb-6 hover:underline"
+        >
+          <ArrowLeft size={18} className="mr-2" />
+          Back to all venues
+        </Link>
+      </div>
 
       {/* Venue header */}
       <div className="mb-8">
@@ -97,7 +99,7 @@ export default function VenueDetailPage() {
         </div>
         {/* Right column - Booking card */}
         <div>
-          <VenueBookingCard price={venue.price} rating={venue.rating} maxGuests={venue.maxGuests} currency="$" />
+          <VenueBookingCard price={venue.price} rating={venue.rating} maxGuests={venue.maxGuests} currency="$" venueId={venue.id} />
         </div>
       </div>
       {/* Host information */}

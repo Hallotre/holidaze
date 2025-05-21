@@ -179,7 +179,7 @@ export const profileService = {
   },
 
   getProfileBookings: async (name: string) => {
-    const response = await api.get(`${API_PROFILES_URL}/${name}/bookings`);
+    const response = await api.get(`${API_PROFILES_URL}/${name}/bookings?_venue=true`);
     return response.data;
   },
   

@@ -45,6 +45,25 @@ export function LoginForm({
       if (data?.data?.accessToken && data?.data?.name) {
         localStorage.setItem("accessToken", data.data.accessToken);
         localStorage.setItem("username", data.data.name);
+        
+        // Check if there's a booking intent in session storage
+        const bookingIntent = sessionStorage.getItem("bookingIntent");
+        if (bookingIntent) {
+          try {
+            const bookingData = JSON.parse(bookingIntent);
+            if (bookingData && bookingData.venueId) {
+              // Clear the booking intent from session storage
+              sessionStorage.removeItem("bookingIntent");
+              // Redirect back to the venue page
+              router.push(`/venues/${bookingData.venueId}`);
+              return;
+            }
+          } catch (error) {
+            console.error("Error parsing booking intent:", error);
+          }
+        }
+        
+        // Default redirect if no booking intent
         router.push("/profile");
       } else {
         setError("No access token or username returned");

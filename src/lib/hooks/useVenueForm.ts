@@ -61,9 +61,12 @@ export const initialVenueFormData: VenueCreate = {
 
 export interface UseVenueFormResult {
   formData: VenueCreate;
+  setFormData: React.Dispatch<React.SetStateAction<VenueCreate>>;
   isSubmitting: boolean;
   error: string | null;
+  setError: React.Dispatch<React.SetStateAction<string | null>>;
   success: string | null;
+  setSuccess: React.Dispatch<React.SetStateAction<string | null>>;
   handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
   handleCheckboxChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleMediaChange: (index: number, field: "url" | "alt", value: string) => void;
@@ -279,9 +282,12 @@ export function useVenueForm(): UseVenueFormResult {
 
   return {
     formData,
+    setFormData,
     isSubmitting,
     error,
+    setError,
     success,
+    setSuccess,
     handleChange,
     handleCheckboxChange,
     handleMediaChange,
