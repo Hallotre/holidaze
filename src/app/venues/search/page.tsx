@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { venueService } from "@/lib/api";
 import { Venue } from "@/types/venue";
 import VenueCard from "@/components/venues/VenueCard";
 import { Loader2 } from "lucide-react";
 
-export default function VenueSearchPage() {
+// Component that uses searchParams
+function SearchContent() {
   const [venues, setVenues] = useState<Venue[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -38,8 +39,7 @@ export default function VenueSearchPage() {
   }, [query]);
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-2">Search Venues</h1>
+    <div>
       {query && (
         <p className="text-lg mb-6">
           Search results for <span className="font-semibold">&quot;{query}&quot;</span>
@@ -64,6 +64,27 @@ export default function VenueSearchPage() {
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+// Loading fallback component
+function LoadingFallback() {
+  return (
+    <div className="flex justify-center items-center py-20">
+      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+    </div>
+  );
+}
+
+// Main page component with Suspense boundary
+export default function VenueSearchPage() {
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold mb-2">Search Venues</h1>
+      <Suspense fallback={<LoadingFallback />}>
+        <SearchContent />
+      </Suspense>
     </div>
   );
 } 
