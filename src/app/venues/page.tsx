@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { venueService } from "@/lib/api";
 import { Venue } from "@/types/venue";
@@ -8,7 +8,8 @@ import VenueCard from "@/components/venues/VenueCard";
 import { Loader2 } from "lucide-react";
 import { QuickFilters } from "@/components/venues/QuickFilters";
 
-export default function VenuesPage() {
+// Create a separate component that uses searchParams
+function VenueContent() {
   const [venues, setVenues] = useState<Venue[]>([]); // Will hold venues for the current page
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -172,145 +173,165 @@ export default function VenuesPage() {
   }
 
   return (
+    <div>
+      {/* Search query indicator */}
+      {searchParams.get("q") && (
+        <p className="text-lg mb-6">
+          Search results for <span className="font-semibold">&ldquo;{searchParams.get("q")}&rdquo;</span>
+        </p>
+      )}
+      
+      {/* Country filter indicator */}
+      {searchParams.get("country") && (
+        <p className="text-lg mb-6">
+          Venues in <span className="font-semibold">{searchParams.get("country")}</span>
+        </p>
+      )}
+      
+      {/* Budget filter indicator */}
+      {searchParams.get("maxPrice") && searchParams.get("sort") === "price" && (
+        <p className="text-lg mb-6">
+          Budget-friendly venues under <span className="font-semibold">${searchParams.get("maxPrice")}</span>
+        </p>
+      )}
+      
+      {/* Top-rated filter indicator */}
+      {searchParams.get("sort") === "rating" && searchParams.get("sortOrder") === "desc" && (
+        <p className="text-lg mb-6">
+          Top-rated venues
+        </p>
+      )}
+      
+      {/* Filter summary - Show which filters are active */}
+      {(searchParams.get("wifi") === "true" || 
+        searchParams.get("parking") === "true" || 
+        searchParams.get("breakfast") === "true" || 
+        searchParams.get("pets") === "true") && (
+        <div className="flex flex-wrap gap-2 mb-6">
+          <span className="text-sm font-medium">Active filters:</span>
+          {searchParams.get("wifi") === "true" && (
+            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+              WiFi
+            </span>
+          )}
+          {searchParams.get("parking") === "true" && (
+            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+              Parking
+            </span>
+          )}
+          {searchParams.get("breakfast") === "true" && (
+            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+              Breakfast
+            </span>
+          )}
+          {searchParams.get("pets") === "true" && (
+            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+              Pets allowed
+            </span>
+          )}
+        </div>
+      )}
+      
+      {/* Latest venues indicator - show only when no specific sort is in URL params */}
+      {(!searchParams.get("sort") || searchParams.get("sort") === "created") && 
+       (!searchParams.get("sortOrder") || searchParams.get("sortOrder") === "desc") && 
+       !searchParams.get("q") && !searchParams.get("country") && !searchParams.get("maxPrice") && (
+        <p className="text-lg mb-6">
+          Latest venues
+        </p>
+      )}
+      
+      {loading ? (
+        <div className="flex justify-center items-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      ) : error ? (
+        <div className="py-20 text-center">
+          <p className="text-red-500">{error}</p>
+        </div>
+      ) : venues.length === 0 ? (
+        <div className="py-20 text-center">
+          <p className="text-xl">No venues found.</p>
+        </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-8">
+            {venues.map((venue) => (
+              <VenueCard key={venue.id} venue={venue} />
+            ))}
+          </div>
+          {/* Pagination controls */}
+          {totalPages && totalPages > 1 && (
+            <nav className="flex justify-center items-center gap-2 mt-10" aria-label="Pagination">
+              <button
+                className="px-3 py-1 rounded border bg-muted text-foreground disabled:opacity-50"
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage <= 1}
+                aria-label="Previous page"
+              >
+                Previous
+              </button>
+              {totalPages && getPaginationRange(currentPage, totalPages).map((item, idx) => // Added null check for totalPages
+                typeof item === 'number' ? (
+                  <button
+                    key={item}
+                    className={`px-3 py-1 rounded border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 focus-visible:ring-offset-2
+                      ${item === currentPage
+                        ? 'bg-primary text-gray-900 ring-2 ring-primary/80 ring-offset-2 shadow-md z-10'
+                        : 'bg-muted text-foreground hover:bg-primary/10'}
+                    `}
+                    onClick={() => handlePageChange(item)}
+                    aria-current={item === currentPage ? 'page' : undefined}
+                    aria-label={`Page ${item}`}
+                    disabled={item === currentPage}
+                  >
+                    {item}
+                  </button>
+                ) : (
+                  <span key={`ellipsis-${idx}`} className="px-2 text-muted-foreground select-none">…</span>
+                )
+              )}
+              <button
+                className="px-3 py-1 rounded border bg-muted text-foreground disabled:opacity-50"
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={totalPages ? currentPage >= totalPages : true} // Added null check for totalPages
+                aria-label="Next page"
+              >
+                Next
+              </button>
+            </nav>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+// Loading fallback component
+function LoadingFallback() {
+  return (
+    <div className="flex justify-center items-center py-20">
+      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+    </div>
+  );
+}
+
+// Main page component with Suspense boundary
+export default function VenuesPage() {
+  return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-2">Explore Venues</h1>
       
-      {/* Quick Filters Section */}
-      <QuickFilters />
+      {/* Quick Filters wrapped in Suspense */}
+      <Suspense fallback={<div className="h-16 bg-gray-100 animate-pulse rounded-md mb-6"></div>}>
+        <QuickFilters />
+      </Suspense>
       
       <div className="grid grid-cols-1 gap-8">
-        {/* Main Content */}
-        <div>
-          {/* Search query indicator */}
-          {searchParams.get("q") && (
-            <p className="text-lg mb-6">
-              Search results for <span className="font-semibold">&ldquo;{searchParams.get("q")}&rdquo;</span>
-            </p>
-          )}
-          
-          {/* Country filter indicator */}
-          {searchParams.get("country") && (
-            <p className="text-lg mb-6">
-              Venues in <span className="font-semibold">{searchParams.get("country")}</span>
-            </p>
-          )}
-          
-          {/* Budget filter indicator */}
-          {searchParams.get("maxPrice") && searchParams.get("sort") === "price" && (
-            <p className="text-lg mb-6">
-              Budget-friendly venues under <span className="font-semibold">${searchParams.get("maxPrice")}</span>
-            </p>
-          )}
-          
-          {/* Top-rated filter indicator */}
-          {searchParams.get("sort") === "rating" && searchParams.get("sortOrder") === "desc" && (
-            <p className="text-lg mb-6">
-              Top-rated venues
-            </p>
-          )}
-          
-          {/* Filter summary - Show which filters are active */}
-          {(searchParams.get("wifi") === "true" || 
-            searchParams.get("parking") === "true" || 
-            searchParams.get("breakfast") === "true" || 
-            searchParams.get("pets") === "true") && (
-            <div className="flex flex-wrap gap-2 mb-6">
-              <span className="text-sm font-medium">Active filters:</span>
-              {searchParams.get("wifi") === "true" && (
-                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                  WiFi
-                </span>
-              )}
-              {searchParams.get("parking") === "true" && (
-                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                  Parking
-                </span>
-              )}
-              {searchParams.get("breakfast") === "true" && (
-                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                  Breakfast
-                </span>
-              )}
-              {searchParams.get("pets") === "true" && (
-                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                  Pets allowed
-                </span>
-              )}
-            </div>
-          )}
-          
-          {/* Latest venues indicator - show only when no specific sort is in URL params */}
-          {(!searchParams.get("sort") || searchParams.get("sort") === "created") && 
-           (!searchParams.get("sortOrder") || searchParams.get("sortOrder") === "desc") && 
-           !searchParams.get("q") && !searchParams.get("country") && !searchParams.get("maxPrice") && (
-            <p className="text-lg mb-6">
-              Latest venues
-            </p>
-          )}
-          
-          {loading ? (
-            <div className="flex justify-center items-center py-20">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-          ) : error ? (
-            <div className="py-20 text-center">
-              <p className="text-red-500">{error}</p>
-            </div>
-          ) : venues.length === 0 ? (
-            <div className="py-20 text-center">
-              <p className="text-xl">No venues found.</p>
-            </div>
-          ) : (
-            <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-8">
-                {venues.map((venue) => (
-                  <VenueCard key={venue.id} venue={venue} />
-                ))}
-              </div>
-              {/* Pagination controls */}
-              {totalPages && totalPages > 1 && (
-                <nav className="flex justify-center items-center gap-2 mt-10" aria-label="Pagination">
-                  <button
-                    className="px-3 py-1 rounded border bg-muted text-foreground disabled:opacity-50"
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage <= 1}
-                    aria-label="Previous page"
-                  >
-                    Previous
-                  </button>
-                  {totalPages && getPaginationRange(currentPage, totalPages).map((item, idx) => // Added null check for totalPages
-                    typeof item === 'number' ? (
-                      <button
-                        key={item}
-                        className={`px-3 py-1 rounded border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 focus-visible:ring-offset-2
-                          ${item === currentPage
-                            ? 'bg-primary text-gray-900 ring-2 ring-primary/80 ring-offset-2 shadow-md z-10'
-                            : 'bg-muted text-foreground hover:bg-primary/10'}
-                        `}
-                        onClick={() => handlePageChange(item)}
-                        aria-current={item === currentPage ? 'page' : undefined}
-                        aria-label={`Page ${item}`}
-                        disabled={item === currentPage}
-                      >
-                        {item}
-                      </button>
-                    ) : (
-                      <span key={`ellipsis-${idx}`} className="px-2 text-muted-foreground select-none">…</span>
-                    )
-                  )}
-                  <button
-                    className="px-3 py-1 rounded border bg-muted text-foreground disabled:opacity-50"
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={totalPages ? currentPage >= totalPages : true} // Added null check for totalPages
-                    aria-label="Next page"
-                  >
-                    Next
-                  </button>
-                </nav>
-              )}
-            </>
-          )}
-        </div>
+        {/* Main Content wrapped in Suspense */}
+        <Suspense fallback={<LoadingFallback />}>
+          <VenueContent />
+        </Suspense>
       </div>
     </div>
   );
