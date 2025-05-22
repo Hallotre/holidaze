@@ -255,7 +255,21 @@ export default function ProfilePage() {
                 )}
                 
                 <div className="w-full flex flex-col gap-3 mt-4">
-                  {/* Settings toggle button */}
+                  <Link href="/profile/dashboard" className="w-full">
+                    <Button className="w-full" variant="primary">
+                      View Booking Dashboard
+                    </Button>
+                  </Link>
+                  
+                  {profile.venueManager && (
+                    <Link href="/profile/venues-dashboard" className="w-full">
+                      <Button className="w-full" variant="outline">
+                        Manage Your Venues
+                      </Button>
+                    </Link>
+                  )}
+                  
+                  {/* Settings toggle button - moved down */}
                   <Button 
                     type="button" 
                     variant="outline" 
@@ -278,20 +292,6 @@ export default function ProfilePage() {
                       <path d="m6 9 6 6 6-6"/>
                     </svg>
                   </Button>
-                  
-                  <Link href="/profile/dashboard" className="w-full">
-                    <Button className="w-full" variant="primary">
-                      View Booking Dashboard
-                    </Button>
-                  </Link>
-                  
-                  {profile.venueManager && (
-                    <Link href="/profile/venues-dashboard" className="w-full">
-                      <Button className="w-full" variant="outline">
-                        Manage Your Venues
-                      </Button>
-                    </Link>
-                  )}
                   
                   <Button 
                     className="w-full" 
