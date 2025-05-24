@@ -1,31 +1,24 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { logError } from '@/lib/utils/error-handler';
+import { geocodeAddress, parseMapboxFeature, LocationData, MapboxFeature } from '@/lib/mapbox-service';
 
 interface MapboxAddressInputProps {
   value: string;
-  onChange: (value: string, location?: {
-    address?: string;
-    city?: string;
-    country?: string;
-    zip?: string;
-    lat?: number;
-    lng?: number;
-  }) => void;
+  onChange: (value: string, location?: LocationData) => void;
   placeholder?: string;
   className?: string;
   disabled?: boolean;
 }
 
 /**
- * MapboxAddressInput - A component for address autocomplete using MapBox
+ * MapboxAddressInput - A component for address autocomplete with secure token handling
  * 
- * This component dynamically loads the MapBox address autocomplete functionality
- * and provides a fallback to a regular input field when MapBox is not available.
- * It also extracts location data like city, country, zip, and coordinates.
+ * This component provides address search functionality without exposing the Mapbox token
+ * by using a server-side API route as a proxy.
  * 
  * @param value - The current address value
  * @param onChange - Callback when address is changed or selected
@@ -41,156 +34,140 @@ export function MapboxAddressInput({
   disabled = false,
 }: MapboxAddressInputProps) {
   const [isClient, setIsClient] = useState(false);
-  const [accessToken, setAccessToken] = useState<string>("");
-  const [isLoading, setIsLoading] = useState(true);
-  const [loadError, setLoadError] = useState<string | null>(null);
-  
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [MapboxComponent, setMapboxComponent] = useState<any>(null);
-  
-  // This effect runs only on the client
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [suggestions, setSuggestions] = useState<LocationData[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
+
+  // Track if component is mounted
   useEffect(() => {
     setIsClient(true);
-    setIsLoading(true);
     
-    // Get the token from environment variables
-    const token = process.env.MAPBOX_ACCESS_TOKEN;
-    if (token) {
-      setAccessToken(token);
+    // Add click outside listener to close suggestions
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        suggestionsRef.current && 
+        !suggestionsRef.current.contains(event.target as Node) &&
+        inputRef.current &&
+        !inputRef.current.contains(event.target as Node)
+      ) {
+        setShowSuggestions(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  // Debounce search for better performance
+  useEffect(() => {
+    if (!value || value.length < 3 || !isClient) return;
+    
+    const timer = setTimeout(() => {
+      handleSearch(value);
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, [value, isClient]);
+
+  // Handle address search
+  const handleSearch = async (searchText: string) => {
+    if (!searchText || searchText.length < 3) {
+      setSuggestions([]);
+      return;
+    }
+    
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      // Use our secure geocoding service
+      const result = await geocodeAddress(searchText);
       
-      // Dynamically import the MapBox component only on the client
-      import('@mapbox/search-js-react')
-        .then((mapbox) => {
-          // Using any type to bypass TypeScript checking
-          setMapboxComponent(() => mapbox.AddressAutofill);
-          setIsLoading(false);
-        })
-        .catch(err => {
-          logError(err, "MapboxAddressInput");
-          setLoadError("Failed to load address autocomplete");
-          setIsLoading(false);
-        });
-    } else {
-      setLoadError("MapBox access token not found");
+      if (result.features && Array.isArray(result.features)) {
+        // Parse results to extract location data
+        const parsedSuggestions = result.features
+          .map((feature: MapboxFeature) => parseMapboxFeature(feature))
+          .filter((loc: LocationData) => loc.address); // Only include results with an address
+        
+        setSuggestions(parsedSuggestions);
+        setShowSuggestions(parsedSuggestions.length > 0);
+      } else {
+        setSuggestions([]);
+        setShowSuggestions(false);
+      }
+    } catch (err) {
+      logError(err, "MapboxAddressInput");
+      setError("Could not load address suggestions");
+      setSuggestions([]);
+    } finally {
       setIsLoading(false);
     }
-  }, []);
-  
-  // Render loading state
-  if (isClient && isLoading) {
-    return (
-      <div className="relative">
-        <Input
-          type="text"
-          value={value}
-          disabled={true}
-          placeholder="Loading address search..."
-          className={className}
-        />
+  };
+
+  // Handle suggestion selection
+  const handleSelectSuggestion = (suggestion: LocationData) => {
+    if (suggestion.address) {
+      onChange(suggestion.address, suggestion);
+      setShowSuggestions(false);
+    }
+  };
+
+  return (
+    <div className="relative">
+      <Input
+        ref={inputRef}
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className={className}
+        disabled={disabled || isLoading}
+        onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+      />
+      
+      {/* Loading indicator */}
+      {isLoading && (
         <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
           <LoadingSpinner size="sm" />
         </div>
-      </div>
-    );
-  }
-  
-  // Render standard input if we're server-side or MapBox isn't loaded yet
-  if (!isClient || !MapboxComponent || !accessToken || loadError) {
-    return (
-      <div className="relative">
-        <Input
-          type="text"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={loadError ? "Address search unavailable" : placeholder}
-          className={className}
-          disabled={disabled}
-        />
-        {loadError && (
-          <div className="text-xs text-red-500 mt-1">
-            {loadError}
-          </div>
-        )}
-      </div>
-    );
-  }
-  
-  // Handle the address selection from MapBox
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleRetrieve = (res: any) => {
-    if (!res.features || !res.features.length) return;
-    
-    const feature = res.features[0];
-    
-    if (feature) {
-      // Extract address components
-      let city = '';
-      let country = '';
-      let zip = '';
-      let address = '';
+      )}
       
-      // Try to extract full address
-      if (feature.place_name) {
-        address = feature.place_name;
-      }
+      {/* Error message */}
+      {error && (
+        <div className="text-xs text-red-500 mt-1">
+          {error}
+        </div>
+      )}
       
-      // Try to extract address components from properties
-      if (feature.properties) {
-        // Some Mapbox responses have the address in properties
-        if (feature.properties.address) {
-          address = feature.properties.address;
-        }
-        
-        // Try to extract city, country, zip from context
-        if (feature.properties.context) {
-          for (const item of feature.properties.context) {
-            if (item.id && item.id.startsWith('place')) {
-              city = item.text || '';
-            } else if (item.id && item.id.startsWith('country')) {
-              country = item.text || '';
-            } else if (item.id && item.id.startsWith('postcode')) {
-              zip = item.text || '';
-            }
-          }
-        }
-      }
-      
-      // Extract coordinates if available
-      let lat: number | undefined;
-      let lng: number | undefined;
-      if (feature.geometry && feature.geometry.coordinates) {
-        [lng, lat] = feature.geometry.coordinates;
-      }
-      
-      // Update with full location data
-      onChange(address, {
-        address,
-        city,
-        country,
-        zip,
-        lat,
-        lng
-      });
-    }
-  };
-  
-  // Now we can safely render the MapBox component
-  return (
-    <div className="relative">
-      <MapboxComponent
-        accessToken={accessToken}
-        onRetrieve={handleRetrieve}
-      >
-        <Input
-          type="text"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          className={className}
-          disabled={disabled}
-          autoComplete="address-line1"
-        />
-      </MapboxComponent>
+      {/* Suggestions dropdown */}
+      {showSuggestions && suggestions.length > 0 && (
+        <div 
+          ref={suggestionsRef}
+          className="absolute z-50 mt-1 w-full bg-white rounded-md shadow-lg max-h-60 overflow-auto"
+        >
+          <ul className="py-1">
+            {suggestions.map((suggestion, index) => (
+              <li 
+                key={index}
+                className="px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer"
+                onClick={() => handleSelectSuggestion(suggestion)}
+              >
+                {suggestion.address}
+                {suggestion.city && suggestion.country && (
+                  <div className="text-xs text-gray-500">
+                    {suggestion.city}, {suggestion.country}
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 } 

@@ -27,7 +27,7 @@ export function RegisterForm({
   const router = useRouter();
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "https://v2.api.noroff.dev";
-  const API_KEY = process.env.NOROFF_API_KEY || "";
+  const API_KEY = process.env.NEXT_PUBLIC_NOROFF_API_KEY || "";
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -36,7 +36,7 @@ export function RegisterForm({
     try {
       const res = await fetch(`${API_BASE_URL}/auth/register`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "X-API-Key": API_KEY },
+        headers: { "Content-Type": "application/json", "X-Noroff-API-Key": API_KEY },
         body: JSON.stringify({
           name,
           email,

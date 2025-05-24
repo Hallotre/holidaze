@@ -140,15 +140,16 @@ npm install
 > **Note:** The project uses package overrides to ensure compatibility between React and react-day-picker. These configurations are necessary for proper functionality and deployment.
 
 3. **Set up environment variables**
-Create a `.env.local` file in the root directory with:
+Create a `.env` file in the root directory with:
 ```
 # API Configuration
-NEXT_PUBLIC_AUTH_TOKEN=your_noroff_token
-NOROFF_API_KEY=your_noroff_key
+NEXT_PUBLIC_NOROFF_API_KEY=your_noroff_key
 
-# Mapbox Configuration
+# Mapbox Configuration (server-side only, not exposed to client)
 MAPBOX_ACCESS_TOKEN=your_mapbox_token 
 ```
+
+> **Note:** The MAPBOX_ACCESS_TOKEN is used server-side only through Next.js API routes, keeping it secure and not exposing it to the client. This prevents unauthorized usage of Mapbox account.
 
 4. **Run the development server**
 ```bash

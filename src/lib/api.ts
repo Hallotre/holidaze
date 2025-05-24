@@ -27,7 +27,7 @@ const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
-    'X-Noroff-API-Key': process.env.NOROFF_API_KEY || ''
+    'X-Noroff-API-Key': process.env.NEXT_PUBLIC_NOROFF_API_KEY || ''
   }
 });
 

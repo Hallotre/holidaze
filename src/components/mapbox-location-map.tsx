@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from 'react';
-import mapboxgl from 'mapbox-gl';
+import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { logError } from '@/lib/utils/error-handler';
 
 interface MapboxLocationMapProps {
   latitude?: number;
@@ -11,96 +10,64 @@ interface MapboxLocationMapProps {
   zoom?: number;
   className?: string;
   showMarker?: boolean;
+  width?: number;
+  height?: number;
 }
 
 /**
- * MapboxLocationMap - A component for displaying a location on a map using Mapbox GL
+ * MapboxLocationMap - A component for displaying a location on a map using Mapbox static images
+ * 
+ * This component fetches a static map image from our server-side API route
+ * to keep the Mapbox token secure and not expose it to the client.
  * 
  * @param latitude - The latitude coordinate
  * @param longitude - The longitude coordinate
  * @param zoom - The initial zoom level (default: 14)
  * @param className - Additional CSS classes
  * @param showMarker - Whether to display a marker at the specified coordinates
+ * @param width - The width of the map image in pixels (default: 600)
+ * @param height - The height of the map image in pixels (default: 400)
  */
 export function MapboxLocationMap({
   latitude,
   longitude,
   zoom = 14,
   className = "",
-  showMarker = true
+  showMarker = true,
+  width = 600,
+  height = 400
 }: MapboxLocationMapProps) {
-  const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<mapboxgl.Map | null>(null);
-  const marker = useRef<mapboxgl.Marker | null>(null);
-  
   const [isClient, setIsClient] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [mapError, setMapError] = useState<string | null>(null);
+  const [mapImageUrl, setMapImageUrl] = useState<string | null>(null);
   
   useEffect(() => {
     setIsClient(true);
   }, []);
   
-  // Initialize the map
+  // Generate the static map URL
   useEffect(() => {
-    if (!isClient || !mapContainer.current || !latitude || !longitude) return;
+    if (!isClient || !latitude || !longitude) return;
     
     try {
-      const token = process.env.MAPBOX_ACCESS_TOKEN;
+      // Create a URL for our server-side API route that will proxy the Mapbox static image request
+      const staticMapUrl = `/api/mapbox/static?` + 
+        `lat=${latitude}&` +
+        `lng=${longitude}&` +
+        `zoom=${zoom}&` +
+        `width=${width}&` +
+        `height=${height}&` +
+        `marker=${showMarker}`;
       
-      if (!token) {
-        setMapError("MapBox access token not found");
-        setIsLoading(false);
-        return;
-      }
-      
-      if (!map.current) {
-        mapboxgl.accessToken = token;
-        
-        map.current = new mapboxgl.Map({
-          container: mapContainer.current,
-          style: 'mapbox://styles/mapbox/streets-v12',
-          center: [longitude, latitude],
-          zoom: zoom
-        });
-        
-        map.current.on('load', () => {
-          setIsLoading(false);
-        });
-        
-        // Add navigation controls
-        map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
-        
-        // Add marker if requested
-        if (showMarker) {
-          marker.current = new mapboxgl.Marker()
-            .setLngLat([longitude, latitude])
-            .addTo(map.current);
-        }
-      } else {
-        // Update the map center and marker if coordinates change
-        map.current.setCenter([longitude, latitude]);
-        
-        if (showMarker && marker.current) {
-          marker.current.setLngLat([longitude, latitude]);
-        }
-        
-        setIsLoading(false);
-      }
-    } catch (error: unknown) {
-      logError(error, 'MapboxLocationMap');
-      setMapError('Failed to load map');
+      setMapImageUrl(staticMapUrl);
+      setIsLoading(false);
+    } catch (error) {
+      console.error('Error generating map URL:', error);
+      setMapError('Failed to generate map URL');
       setIsLoading(false);
     }
-    
-    // Cleanup function
-    return () => {
-      if (map.current) {
-        map.current.remove();
-        map.current = null;
-      }
-    };
-  }, [isClient, latitude, longitude, zoom, showMarker]);
+  }, [isClient, latitude, longitude, zoom, showMarker, width, height]);
   
   // If coordinates are not provided, show a message
   if (!latitude || !longitude) {
@@ -113,10 +80,17 @@ export function MapboxLocationMap({
   
   return (
     <div className={`relative ${className}`}>
-      <div 
-        ref={mapContainer} 
-        className="w-full h-full min-h-[250px] rounded-lg overflow-hidden"
-      />
+      <div className="w-full h-full min-h-[250px] rounded-lg overflow-hidden">
+        {isClient && !isLoading && mapImageUrl && (
+          <Image
+            src={mapImageUrl}
+            alt={`Map showing location at ${latitude},${longitude}`}
+            width={width}
+            height={height}
+            className="object-cover w-full h-full"
+          />
+        )}
+      </div>
       
       {/* Loading overlay */}
       {isLoading && (
