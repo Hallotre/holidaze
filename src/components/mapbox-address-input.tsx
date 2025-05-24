@@ -54,7 +54,7 @@ export function MapboxAddressInput({
     setIsLoading(true);
     
     // Get the token from environment variables
-    const token = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
+    const token = process.env.MAPBOX_ACCESS_TOKEN;
     if (token) {
       setAccessToken(token);
       

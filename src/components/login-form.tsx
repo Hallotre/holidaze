@@ -24,7 +24,7 @@ export function LoginForm({
   const router = useRouter();
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "https://v2.api.noroff.dev";
-  const API_KEY = process.env.NEXT_PUBLIC_NOROFF_API_KEY || "";
+  const API_KEY = process.env.NOROFF_API_KEY || "";
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();

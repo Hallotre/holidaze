@@ -55,7 +55,7 @@ export function BookingsList({ username }: { username: string }) {
         const response = await fetch(apiUrl, {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
-            'X-Noroff-API-Key': process.env.NEXT_PUBLIC_NOROFF_API_KEY || ''
+            'X-Noroff-API-Key': process.env.NOROFF_API_KEY || ''
           }
         });
         

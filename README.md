@@ -144,10 +144,10 @@ Create a `.env.local` file in the root directory with:
 ```
 # API Configuration
 NEXT_PUBLIC_AUTH_TOKEN=your_noroff_token
-NEXT_PUBLIC_NOROFF_API_KEY=your_noroff_key
+NOROFF_API_KEY=your_noroff_key
 
 # Mapbox Configuration
-NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=your_mapbox_token 
+MAPBOX_ACCESS_TOKEN=your_mapbox_token 
 ```
 
 4. **Run the development server**
