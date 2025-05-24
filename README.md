@@ -123,16 +123,6 @@ The application design focused on creating an appealing, WCAG-compliant interfac
 - Date filtering
 - Advanced filters for amenities and price range
 
-## Testing Results
-
-The application was tested using multiple tools:
-- **HTML Validation**: 0 errors
-- **Lighthouse Scores**:
-  - Performance: 92/100
-  - Accessibility: 98/100
-  - Best Practices: 95/100
-  - SEO: 100/100
-- **WAVE**: 0 errors, 0 contrast errors
 
 ## Setup and Installation
 
