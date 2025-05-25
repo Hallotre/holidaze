@@ -24,17 +24,44 @@ export function RegisterForm({
   const [venueManager, setVenueManager] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null);
   const router = useRouter();
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "https://v2.api.noroff.dev";
   const API_KEY = process.env.NEXT_PUBLIC_NOROFF_API_KEY || "";
 
+  // Validate Noroff email
+  const validateEmail = (email: string) => {
+    const noroffEmailRegex = /^[a-zA-Z0-9._-]+@stud\.noroff\.no$/;
+    return noroffEmailRegex.test(email);
+  };
+
+  // Handle email change
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newEmail = e.target.value;
+    setEmail(newEmail);
+    
+    if (newEmail && !validateEmail(newEmail)) {
+      setEmailError("Email must be a valid stud.noroff.no address");
+    } else {
+      setEmailError(null);
+    }
+  };
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    
+    // Validate email before submission
+    if (!validateEmail(email)) {
+      setEmailError("Email must be a valid stud.noroff.no address");
+      return;
+    }
+    
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${API_BASE_URL}/auth/register`, {
+      // Register the user
+      const registerRes = await fetch(`${API_BASE_URL}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-Noroff-API-Key": API_KEY },
         body: JSON.stringify({
@@ -45,13 +72,74 @@ export function RegisterForm({
           venueManager,
         }),
       });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data?.errors?.[0]?.message || data?.error || "Registration failed");
+      
+      const registerData = await registerRes.json();
+      
+      if (!registerRes.ok) {
+        setError(registerData?.errors?.[0]?.message || registerData?.error || "Registration failed");
         setIsLoading(false);
         return;
       }
-      router.push("/login");
+      
+      // Automatically log the user in after successful registration
+      const loginRes = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Noroff-API-Key": API_KEY },
+        body: JSON.stringify({ email, password }),
+      });
+      
+      const loginData = await loginRes.json();
+      
+      if (!loginRes.ok) {
+        // If login fails, still consider registration successful but redirect to login
+        router.push("/login");
+        return;
+      }
+      
+      if (loginData?.data?.accessToken && loginData?.data?.name) {
+        // Store auth data in localStorage
+        localStorage.setItem("accessToken", loginData.data.accessToken);
+        localStorage.setItem("username", loginData.data.name);
+        
+        // Store additional user data
+        if (loginData.data.email) {
+          localStorage.setItem("email", loginData.data.email);
+        }
+        
+        // Set venue manager status
+        localStorage.setItem("venueManager", JSON.stringify(venueManager));
+        
+        // Store avatar and banner if they exist in the response
+        if (loginData.data.avatar) {
+          localStorage.setItem("avatar", JSON.stringify(loginData.data.avatar));
+        }
+        if (loginData.data.banner) {
+          localStorage.setItem("banner", JSON.stringify(loginData.data.banner));
+        }
+        
+        // Check if there's a booking intent in session storage
+        const bookingIntent = sessionStorage.getItem("bookingIntent");
+        if (bookingIntent) {
+          try {
+            const bookingData = JSON.parse(bookingIntent);
+            if (bookingData && bookingData.venueId) {
+              // Clear the booking intent from session storage
+              sessionStorage.removeItem("bookingIntent");
+              // Redirect back to the venue page
+              router.push(`/venues/${bookingData.venueId}`);
+              return;
+            }
+          } catch (error) {
+            console.error("Error parsing booking intent:", error);
+          }
+        }
+        
+        // Default redirect if no booking intent
+        router.push("/profile");
+      } else {
+        // If we can't get token, redirect to login
+        router.push("/login");
+      }
     } catch (error: unknown) {
       setError("Network error");
       console.error("Registration error:", error);
@@ -94,11 +182,14 @@ export function RegisterForm({
                   type="email"
                   placeholder="blabla@stud.noroff.no"
                   required
-                  pattern="^[\\w.-]+@stud\\.noroff\\.no$"
                   value={email}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+                  onChange={handleEmailChange}
                   disabled={isLoading}
+                  className={emailError ? "border-red-500" : ""}
                 />
+                {emailError && (
+                  <div className="text-red-600 text-xs mt-1">{emailError}</div>
+                )}
               </div>
               <div className="grid gap-3">
                 <Label htmlFor="password">Password</Label>
