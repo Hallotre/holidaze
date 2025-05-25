@@ -1,9 +1,43 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import Image from "next/image";
+import { getLocalUser } from "@/lib/get-local-user";
+import { useRouter } from "next/navigation";
 
 export default function HomePage() {
+  // State for authentication and venue manager status
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isVenueManager, setIsVenueManager] = useState(false);
+  const router = useRouter();
+
+  // Check authentication status on client-side
+  useEffect(() => {
+    const user = getLocalUser();
+    if (user) {
+      setIsAuthenticated(true);
+      setIsVenueManager(!!user.venueManager);
+    }
+  }, []);
+
+  // Handle "Become a Host" button click
+  const handleBecomeHost = () => {
+    if (!isAuthenticated) {
+      // Not logged in, redirect to register
+      router.push("/register");
+    } else if (isVenueManager) {
+      // Already a venue manager, redirect to venues dashboard
+      router.push("/profile/venues-dashboard");
+    } else {
+      // Logged in but not a venue manager, redirect to profile page
+      // where they can update their settings
+      router.push("/profile");
+    }
+  };
+
   // Popular destinations with Unsplash images
   const destinations = [
     {
@@ -70,11 +104,14 @@ export default function HomePage() {
                 Browse Venues
               </Button>
             </Link>
-            <Link href="/register">
-              <Button variant="outline" size="lg" className="text-lg font-medium bg-white text-pink-600 hover:bg-white/90 border-2 border-pink-600 w-full">
-                Become a Host
-              </Button>
-            </Link>
+            <Button 
+              variant="outline" 
+              size="lg" 
+              className="text-lg font-medium bg-white text-pink-600 hover:bg-white/90 border-2 border-pink-600"
+              onClick={handleBecomeHost}
+            >
+              {isVenueManager ? "Manage Your Venues" : "Become a Host"}
+            </Button>
           </div>
         </div>
       </section>
@@ -229,16 +266,22 @@ export default function HomePage() {
           <div className="absolute inset-0 bg-gradient-to-r from-blue-500/70 to-violet-500/70 z-10"></div>
         </div>
         <div className="container mx-auto px-4 text-center relative z-20">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6 text-white">Ready to host your venue?</h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-6 text-white">
+            {isVenueManager ? "Manage your venues" : "Ready to host your venue?"}
+          </h2>
           <p className="text-xl mb-8 max-w-2xl mx-auto text-white">
-            Join our community of hosts and start earning by sharing your space
-            with travelers
+            {isVenueManager 
+              ? "Access your dashboard to manage bookings and update your venues" 
+              : "Join our community of hosts and start earning by sharing your space with travelers"}
           </p>
-          <Link href="/register">
-            <Button size="lg" variant="secondary" className="text-lg font-medium bg-white text-violet-600 hover:bg-white/90 border-2 border-white">
-              Become a Host Today
-            </Button>
-          </Link>
+          <Button 
+            size="lg" 
+            variant="secondary" 
+            className="text-lg font-medium bg-white text-violet-600 hover:bg-white/90 border-2 border-white"
+            onClick={handleBecomeHost}
+          >
+            {isVenueManager ? "Go to Dashboard" : "Become a Host Today"}
+          </Button>
         </div>
       </section>
     </div>
