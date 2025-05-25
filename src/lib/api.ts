@@ -3,11 +3,13 @@ import { LoginCredentials, RegisterCredentials, Profile, ProfileUpdate } from '.
 import { Booking, BookingCreate } from '../types/booking';
 import { Venue, VenueCreate } from '../types/venue';
 
+// Define the API base URL with a fallback
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://v2.api.noroff.dev';
-const API_VENUES_URL = process.env.NEXT_PUBLIC_API_VENUES_URL || `${API_BASE_URL}/holidaze/venues`;
-const API_BOOKINGS_URL = process.env.NEXT_PUBLIC_API_BOOKINGS_URL || `${API_BASE_URL}/holidaze/bookings`;
-const API_AUTH_URL = process.env.NEXT_PUBLIC_API_AUTH_URL || `${API_BASE_URL}/holidaze/auth`;
-const API_PROFILES_URL = process.env.NEXT_PUBLIC_API_PROFILES_URL || `${API_BASE_URL}/holidaze/profiles`;
+// Define specific endpoint URLs
+const API_VENUES_URL = `${API_BASE_URL}/holidaze/venues`;
+const API_BOOKINGS_URL = `${API_BASE_URL}/holidaze/bookings`;
+const API_AUTH_URL = `${API_BASE_URL}/holidaze/auth`;
+const API_PROFILES_URL = `${API_BASE_URL}/holidaze/profiles`;
 
 // Response type for paginated data
 interface ApiResponse<T> {
@@ -34,9 +36,12 @@ const api = axios.create({
 // Add auth token to requests if available
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('accessToken');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    // Safely access localStorage only in browser environment
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('accessToken');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
     return config;
   },

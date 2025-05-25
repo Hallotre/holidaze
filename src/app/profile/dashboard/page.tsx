@@ -76,21 +76,8 @@ export default function DashboardPage() {
       setError(null);
       
       try {
-        // Use direct API call to ensure venue data is included
-        const apiUrl = `https://v2.api.noroff.dev/holidaze/profiles/${storedUsername}/bookings?_venue=true`;
-        
-        const response = await fetch(apiUrl, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
-            'X-Noroff-API-Key': process.env.NEXT_PUBLIC_NOROFF_API_KEY || ''
-          }
-        });
-        
-        if (!response.ok) {
-          throw new Error(`API request failed with status ${response.status}`);
-        }
-        
-        const result = await response.json();
+        // Use profileService instead of direct API call
+        const result = await profileService.getProfileBookings(storedUsername);
         
         // Process each booking to ensure venue data is present
         const bookingsWithVenues = await Promise.all(

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { venueService } from "@/lib/api";
+import { venueService, profileService } from "@/lib/api";
 import { Booking } from "@/types/booking";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -49,21 +49,8 @@ export function BookingsList({ username }: { username: string }) {
       setError(null);
       
       try {
-        // Modified request to ensure we get venue data
-        const apiUrl = `https://v2.api.noroff.dev/holidaze/profiles/${username}/bookings?_venue=true`;
-        
-        const response = await fetch(apiUrl, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
-            'X-Noroff-API-Key': process.env.NEXT_PUBLIC_NOROFF_API_KEY || ''
-          }
-        });
-        
-        if (!response.ok) {
-          throw new Error(`API request failed with status ${response.status}`);
-        }
-        
-        const result = await response.json();
+        // Use profileService instead of direct fetch to ensure consistent API key handling
+        const result = await profileService.getProfileBookings(username);
         
         // Ensure each booking has complete venue data
         const bookingsWithVenues = await Promise.all(
