@@ -2,9 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Star, Heart, Trophy } from "lucide-react";
+import { Star, Trophy } from "lucide-react";
 import { Venue } from "@/types/venue";
-import { Button } from "@/components/ui/button";
 
 interface VenueCardProps {
   venue: Venue;
@@ -48,16 +47,6 @@ export default function VenueCard({ venue }: VenueCardProps) {
               <Trophy className="h-4 w-4 text-yellow-500" /> Guest favorite
             </span>
           )}
-          {/* Heart icon */}
-          <Button
-            variant="outline"
-            size="sm"
-            className="absolute top-2 right-2 z-20 bg-white/90 hover:bg-white rounded-full p-2 h-9 w-9 flex items-center justify-center"
-            aria-label="Add to favorites"
-            tabIndex={-1}
-          >
-            <Heart className="h-5 w-5 text-primary" />
-          </Button>
         </div>
         {/* Text section */}
         <div className="flex flex-col gap-0.5 px-1.5 pt-2 pb-1.5">
