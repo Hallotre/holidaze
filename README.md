@@ -128,7 +128,7 @@ The application design focused on creating an appealing, WCAG-compliant interfac
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/yourusername/holidaze.git
+git clone https://github.com/hallotre/holidaze.git
 cd holidaze
 ```
 
